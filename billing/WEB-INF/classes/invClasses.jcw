@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<workspace>
+	<settings>
+		<label>invClasses</label>
+	</settings>
+	<users>
+		<user>
+			<path>invClasses.jcu</path>
+		</user>
+	</users>
+	<projects>
+		<project>
+			<path>invClasses.jcp</path>
+		</project>
+	</projects>
+</workspace>
