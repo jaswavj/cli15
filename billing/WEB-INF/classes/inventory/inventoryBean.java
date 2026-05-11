@@ -627,9 +627,11 @@ public class inventoryBean {
 
             String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, i.vehicle_number, "
                     + "COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, COALESCE(i.purchase_cost, 0) AS purchase_cost, "
-                    + "COALESCE(i.purchase_remark, '-') AS purchase_remark, COALESCE(i.supplier_id, 0) AS supplier_id "
+                    + "COALESCE(i.purchase_remark, '-') AS purchase_remark, COALESCE(i.supplier_id, 0) AS supplier_id, "
+                    + "COALESCE(i.store_id, 0) AS store_id, COALESCE(st.name, '-') AS store_name "
                     + "FROM inventory i "
                     + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
                     + "ORDER BY i.id DESC";
 
             pt = con.prepareStatement(sql);
@@ -637,17 +639,19 @@ public class inventoryBean {
 
             while (rs.next()) {
                 Vector row = new Vector();
-                row.addElement(rs.getString(1));
-                row.addElement(rs.getString(2));
-                row.addElement(rs.getString(3));
-                row.addElement(rs.getString(4));
-                row.addElement(rs.getString(5));
-                row.addElement(rs.getString(6));
-                row.addElement(rs.getString(7));
-                row.addElement(rs.getString(8));
-                row.addElement(rs.getString(9));
-                row.addElement(rs.getString(10));
-                row.addElement(rs.getString(11));
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: supplier_name
+                row.addElement(rs.getString(4));   // 3: file_id
+                row.addElement(rs.getString(5));   // 4: product_name
+                row.addElement(rs.getString(6));   // 5: vehicle_number
+                row.addElement(rs.getString(7));   // 6: is_rc
+                row.addElement(rs.getString(8));   // 7: model_year
+                row.addElement(rs.getString(9));   // 8: purchase_cost
+                row.addElement(rs.getString(10));  // 9: purchase_remark
+                row.addElement(rs.getString(11));  // 10: supplier_id
+                row.addElement(rs.getString(12));  // 11: store_id
+                row.addElement(rs.getString(13));  // 12: store_name
                 major.addElement(row);
             }
 
@@ -753,7 +757,7 @@ public class inventoryBean {
         }
     }
 
-    public Vector getInventoryPurchaseReport(String fromDate, String toDate, int supplierId) throws Exception {
+    public Vector getInventoryPurchaseReport(String fromDate, String toDate, int supplierId, int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
@@ -762,16 +766,21 @@ public class inventoryBean {
             con = util.DBConnectionManager.getConnectionFromPool();
             Vector major = new Vector();
 
-            String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, i.vehicle_number, "
+            String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, COALESCE(st.name, '-') AS store_name, "
+                    + "i.file_id, i.product_name, i.vehicle_number, "
                     + "COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, COALESCE(i.purchase_cost, 0) AS purchase_cost, "
                     + "COALESCE(i.purchase_remark, '-') AS purchase_remark, i.dateTime, "
                     + "COALESCE((SELECT SUM(e.amount) FROM inv_expense_entry e WHERE e.bike_id = i.id AND e.is_active = 1), 0) AS expense_total "
                     + "FROM inventory i "
                     + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
                     + "WHERE i.inv_date BETWEEN ? AND ? ";
 
             if (supplierId > 0) {
                 sql += "AND i.supplier_id = ? ";
+            }
+            if (storeId > 0) {
+                sql += "AND i.store_id = ? ";
             }
 
             sql += "ORDER BY i.inv_date DESC, i.id DESC";
@@ -779,25 +788,30 @@ public class inventoryBean {
             pt = con.prepareStatement(sql);
             pt.setString(1, fromDate);
             pt.setString(2, toDate);
+            int paramIdx = 3;
             if (supplierId > 0) {
-                pt.setInt(3, supplierId);
+                pt.setInt(paramIdx++, supplierId);
+            }
+            if (storeId > 0) {
+                pt.setInt(paramIdx++, storeId);
             }
 
             rs = pt.executeQuery();
             while (rs.next()) {
                 Vector row = new Vector();
-                row.addElement(rs.getString(1));
-                row.addElement(rs.getString(2));
-                row.addElement(rs.getString(3));
-                row.addElement(rs.getString(4));
-                row.addElement(rs.getString(5));
-                row.addElement(rs.getString(6));
-                row.addElement(rs.getString(7));
-                row.addElement(rs.getString(8));
-                row.addElement(rs.getString(9));
-                row.addElement(rs.getString(10));
-                row.addElement(rs.getString(11));
-                row.addElement(rs.getString(12));
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: supplier_name
+                row.addElement(rs.getString(4));   // 3: store_name
+                row.addElement(rs.getString(5));   // 4: file_id
+                row.addElement(rs.getString(6));   // 5: product_name
+                row.addElement(rs.getString(7));   // 6: vehicle_number
+                row.addElement(rs.getString(8));   // 7: is_rc
+                row.addElement(rs.getString(9));   // 8: model_year
+                row.addElement(rs.getString(10));  // 9: purchase_cost
+                row.addElement(rs.getString(11));  // 10: purchase_remark
+                row.addElement(rs.getString(12));  // 11: dateTime
+                row.addElement(rs.getString(13));  // 12: expense_total
                 major.addElement(row);
             }
 
@@ -864,6 +878,178 @@ public class inventoryBean {
         }
     }
 
+    public Vector getUnsoldInventoryByStore(int storeId) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+
+            String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, "
+                    + "i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
+                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.store_id, 0) AS store_id, "
+                    + "COALESCE(st.name, '-') AS store_name "
+                    + "FROM inventory i "
+                    + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
+                    + "WHERE (i.is_sold = 0 OR i.is_sold IS NULL) ";
+
+            if (storeId > 0) {
+                sql += "AND i.store_id = ? ";
+            }
+
+            sql += "ORDER BY i.inv_date DESC, i.id DESC";
+
+            pt = con.prepareStatement(sql);
+            if (storeId > 0) {
+                pt.setInt(1, storeId);
+            }
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));
+                row.addElement(rs.getString(2));
+                row.addElement(rs.getString(3));
+                row.addElement(rs.getString(4));
+                row.addElement(rs.getString(5));
+                row.addElement(rs.getString(6));
+                row.addElement(rs.getString(7));
+                row.addElement(rs.getString(8));
+                row.addElement(rs.getString(9));
+                row.addElement(rs.getString(10));
+                row.addElement(rs.getString(11));
+                major.addElement(row);
+            }
+
+            return major;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
+        }
+    }
+
+    public void transferUnsoldBikeStore(int bikeId, int fromStoreId, int toStoreId, String remark, int uid) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            if (bikeId <= 0) {
+                throw new Exception("Invalid bike selected.");
+            }
+            if (fromStoreId <= 0 || toStoreId <= 0) {
+                throw new Exception("From store and To store are required.");
+            }
+            if (fromStoreId == toStoreId) {
+                throw new Exception("From store and To store cannot be same.");
+            }
+
+            con = util.DBConnectionManager.getConnectionFromPool();
+            con.setAutoCommit(false);
+
+            String checkSql = "SELECT COALESCE(store_id, 0), COALESCE(is_sold, 0) FROM inventory WHERE id = ? FOR UPDATE";
+            pt = con.prepareStatement(checkSql);
+            pt.setInt(1, bikeId);
+            rs = pt.executeQuery();
+
+            if (!rs.next()) {
+                throw new Exception("Bike not found.");
+            }
+
+            int currentStoreId = rs.getInt(1);
+            int isSold = rs.getInt(2);
+            rs.close();
+            rs = null;
+            pt.close();
+            pt = null;
+
+            if (isSold == 1) {
+                throw new Exception("Sold bike cannot be transferred.");
+            }
+            if (currentStoreId != fromStoreId) {
+                throw new Exception("Bike is not in selected From Store.");
+            }
+
+            String updateSql = "UPDATE inventory SET store_id = ? WHERE id = ?";
+            pt = con.prepareStatement(updateSql);
+            pt.setInt(1, toStoreId);
+            pt.setInt(2, bikeId);
+            pt.executeUpdate();
+            pt.close();
+            pt = null;
+
+            String insertSql = "INSERT INTO inv_store_transfer(bike_id, from_store_id, to_store_id, remark, transfer_date_time, uid) "
+                    + "VALUES (?, ?, ?, ?, NOW(), ?)";
+            pt = con.prepareStatement(insertSql);
+            pt.setInt(1, bikeId);
+            pt.setInt(2, fromStoreId);
+            pt.setInt(3, toStoreId);
+            pt.setString(4, remark != null ? remark.trim() : null);
+            pt.setInt(5, uid);
+            pt.executeUpdate();
+
+            con.commit();
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
+            }
+            throw e;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } }
+            if (con != null) { try { con.close(); } catch (Exception e) { } }
+        }
+    }
+
+    public Vector getInvStoreTransferHistory(int limit) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+
+            String sql = "SELECT t.id, t.transfer_date_time, t.bike_id, COALESCE(i.file_id, 0) AS file_id, "
+                    + "COALESCE(i.product_name, '-') AS product_name, COALESCE(fs.name, '-') AS from_store, "
+                    + "COALESCE(ts.name, '-') AS to_store, COALESCE(t.remark, '-') AS remark, "
+                    + "COALESCE(u.fullName, u.user_name, '-') AS transfer_by "
+                    + "FROM inv_store_transfer t "
+                    + "LEFT JOIN inventory i ON i.id = t.bike_id "
+                    + "LEFT JOIN inv_stores fs ON fs.id = t.from_store_id "
+                    + "LEFT JOIN inv_stores ts ON ts.id = t.to_store_id "
+                    + "LEFT JOIN users u ON u.id = t.uid "
+                    + "ORDER BY t.id DESC LIMIT ?";
+            pt = con.prepareStatement(sql);
+            pt.setInt(1, limit > 0 ? limit : 50);
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));
+                row.addElement(rs.getString(2));
+                row.addElement(rs.getString(3));
+                row.addElement(rs.getString(4));
+                row.addElement(rs.getString(5));
+                row.addElement(rs.getString(6));
+                row.addElement(rs.getString(7));
+                row.addElement(rs.getString(8));
+                row.addElement(rs.getString(9));
+                major.addElement(row);
+            }
+
+            return major;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
+        }
+    }
+
     public void markAsSold(int id, double saleAmount, String soldDate, String saleRemark, int soldUid) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
@@ -891,7 +1077,7 @@ public class inventoryBean {
         }
     }
 
-    public Vector getInventorySaleReport(String fromDate, String toDate, int supplierId) throws Exception {
+    public Vector getInventorySaleReport(String fromDate, String toDate, int supplierId, int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
@@ -900,16 +1086,22 @@ public class inventoryBean {
             con = util.DBConnectionManager.getConnectionFromPool();
             Vector major = new Vector();
 
-            String sql = "SELECT i.id, i.inv_date, i.sold_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, "
+            String sql = "SELECT i.id, i.inv_date, i.sold_date, COALESCE(s.name, '-') AS supplier_name, COALESCE(st.name, '-') AS store_name, i.file_id, "
                     + "i.product_name, i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
-                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.sale_amount, 0) AS sale_amount, "
+                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost, "
+                    + "COALESCE((SELECT SUM(e.amount) FROM inv_expense_entry e WHERE e.bike_id = i.id AND e.is_active = 1), 0) AS expense_total, "
+                    + "COALESCE(i.sale_amount, 0) AS sale_amount, "
                     + "COALESCE(i.sale_remark, '-') AS sale_remark, i.sold_entry_datetime "
                     + "FROM inventory i "
                     + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
                     + "WHERE i.is_sold = 1 AND i.sold_date BETWEEN ? AND ? ";
 
             if (supplierId > 0) {
                 sql += "AND i.supplier_id = ? ";
+            }
+            if (storeId > 0) {
+                sql += "AND i.store_id = ? ";
             }
 
             sql += "ORDER BY i.sold_date DESC, i.id DESC";
@@ -917,8 +1109,12 @@ public class inventoryBean {
             pt = con.prepareStatement(sql);
             pt.setString(1, fromDate);
             pt.setString(2, toDate);
+            int paramIdx = 3;
             if (supplierId > 0) {
-                pt.setInt(3, supplierId);
+                pt.setInt(paramIdx++, supplierId);
+            }
+            if (storeId > 0) {
+                pt.setInt(paramIdx++, storeId);
             }
 
             rs = pt.executeQuery();
@@ -937,6 +1133,8 @@ public class inventoryBean {
                 row.addElement(rs.getString(11));
                 row.addElement(rs.getString(12));
                 row.addElement(rs.getString(13));
+                row.addElement(rs.getString(14));
+                row.addElement(rs.getString(15));
                 major.addElement(row);
             }
 
@@ -949,22 +1147,32 @@ public class inventoryBean {
     }
 
     public Vector getDashboardStats() throws Exception {
+        return getDashboardStats(0);
+    }
+
+    public Vector getDashboardStats(int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
         try {
             con = util.DBConnectionManager.getConnectionFromPool();
+            String storeFilter = storeId > 0 ? " AND i.store_id = ? " : "";
             String sql =
                 "SELECT " +
-                "  (SELECT COUNT(*) FROM inventory WHERE (is_sold = 0 OR is_sold IS NULL)) AS total_unsold, " +
-                "  (SELECT COUNT(*) FROM inventory WHERE is_sold = 1) AS total_sold, " +
-                "  (SELECT COALESCE(SUM(purchase_cost),0) FROM inventory) AS total_purchase_cost, " +
-                "  (SELECT COALESCE(SUM(sale_amount),0) FROM inventory WHERE is_sold = 1) AS total_sale_amount, " +
-                "  (SELECT COALESCE(SUM(amount),0) FROM inv_expense_entry WHERE is_active = 1) AS total_expenses, " +
-                "  (SELECT COUNT(*) FROM inventory WHERE is_sold = 1 AND DATE(sold_date) = CURDATE()) AS today_sold, " +
-                "  (SELECT COUNT(*) FROM inventory WHERE YEAR(inv_date) = YEAR(CURDATE()) AND MONTH(inv_date) = MONTH(CURDATE())) AS this_month_purchased, " +
-                "  (SELECT COUNT(*) FROM inv_supplier WHERE is_active = 1) AS total_suppliers";
+                "  (SELECT COUNT(*) FROM inventory i WHERE (i.is_sold = 0 OR i.is_sold IS NULL) " + storeFilter + ") AS total_unsold, " +
+                "  (SELECT COUNT(*) FROM inventory i WHERE i.is_sold = 1 " + storeFilter + ") AS total_sold, " +
+                "  (SELECT COALESCE(SUM(i.purchase_cost),0) FROM inventory i WHERE 1=1 " + storeFilter + ") AS total_purchase_cost, " +
+                "  (SELECT COALESCE(SUM(i.sale_amount),0) FROM inventory i WHERE i.is_sold = 1 " + storeFilter + ") AS total_sale_amount, " +
+                "  (SELECT COALESCE(SUM(e.amount),0) FROM inv_expense_entry e INNER JOIN inventory i ON i.id = e.bike_id WHERE e.is_active = 1 " + storeFilter + ") AS total_expenses, " +
+                "  (SELECT COUNT(*) FROM inventory i WHERE i.is_sold = 1 AND DATE(i.sold_date) = CURDATE() " + storeFilter + ") AS today_sold, " +
+                "  (SELECT COUNT(*) FROM inventory i WHERE YEAR(i.inv_date) = YEAR(CURDATE()) AND MONTH(i.inv_date) = MONTH(CURDATE()) " + storeFilter + ") AS this_month_purchased, " +
+                "  (SELECT COUNT(DISTINCT i.supplier_id) FROM inventory i LEFT JOIN inv_supplier s ON s.id = i.supplier_id WHERE s.is_active = 1 " + storeFilter + ") AS total_suppliers";
             pt = con.prepareStatement(sql);
+            if (storeId > 0) {
+                for (int i = 1; i <= 8; i++) {
+                    pt.setInt(i, storeId);
+                }
+            }
             rs = pt.executeQuery();
             Vector row = new Vector();
             if (rs.next()) {
@@ -986,6 +1194,10 @@ public class inventoryBean {
     }
 
     public Vector getRecentSales(int limit) throws Exception {
+        return getRecentSales(limit, 0);
+    }
+
+    public Vector getRecentSales(int limit, int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
@@ -997,9 +1209,17 @@ public class inventoryBean {
                 "COALESCE(i.sale_amount, 0), COALESCE(s.name, '-'), COALESCE(i.purchase_cost, 0) " +
                 "FROM inventory i " +
                 "LEFT JOIN inv_supplier s ON s.id = i.supplier_id " +
-                "WHERE i.is_sold = 1 ORDER BY i.sold_date DESC, i.id DESC LIMIT ?";
+                "WHERE i.is_sold = 1 ";
+            if (storeId > 0) {
+                sql += "AND i.store_id = ? ";
+            }
+            sql += "ORDER BY i.sold_date DESC, i.id DESC LIMIT ?";
             pt = con.prepareStatement(sql);
-            pt.setInt(1, limit);
+            int p = 1;
+            if (storeId > 0) {
+                pt.setInt(p++, storeId);
+            }
+            pt.setInt(p, limit);
             rs = pt.executeQuery();
             while (rs.next()) {
                 Vector row = new Vector();
@@ -1021,12 +1241,18 @@ public class inventoryBean {
     }
 
     public Vector getMonthlyData() throws Exception {
+        return getMonthlyData(0);
+    }
+
+    public Vector getMonthlyData(int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
         try {
             con = util.DBConnectionManager.getConnectionFromPool();
             Vector major = new Vector();
+            String purchaseStoreCond = storeId > 0 ? "WHERE store_id = ? " : "";
+            String soldStoreCond = storeId > 0 ? "AND store_id = ? " : "";
             String sql =
                 "SELECT DATE_FORMAT(m.month_date, '%b %Y') AS month_label, " +
                 "  COALESCE(p.purchase_count, 0), " +
@@ -1039,14 +1265,18 @@ public class inventoryBean {
                 ") m " +
                 "LEFT JOIN ( " +
                 "  SELECT DATE_FORMAT(inv_date, '%Y-%m-01') AS mo, COUNT(*) AS purchase_count, SUM(purchase_cost) AS purchase_cost " +
-                "  FROM inventory GROUP BY mo " +
+                "  FROM inventory " + purchaseStoreCond + "GROUP BY mo " +
                 ") p ON p.mo = m.month_date " +
                 "LEFT JOIN ( " +
                 "  SELECT DATE_FORMAT(sold_date, '%Y-%m-01') AS mo, COUNT(*) AS sold_count, SUM(sale_amount) AS sale_amount " +
-                "  FROM inventory WHERE is_sold = 1 GROUP BY mo " +
+                "  FROM inventory WHERE is_sold = 1 " + soldStoreCond + "GROUP BY mo " +
                 ") s ON s.mo = m.month_date " +
                 "ORDER BY m.month_date ASC";
             pt = con.prepareStatement(sql);
+            if (storeId > 0) {
+                pt.setInt(1, storeId);
+                pt.setInt(2, storeId);
+            }
             rs = pt.executeQuery();
             while (rs.next()) {
                 Vector row = new Vector();
@@ -1066,6 +1296,10 @@ public class inventoryBean {
     }
 
     public Vector getTopSuppliers() throws Exception {
+        return getTopSuppliers(0);
+    }
+
+    public Vector getTopSuppliers(int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
@@ -1080,10 +1314,17 @@ public class inventoryBean {
                 "  COALESCE(SUM(i.purchase_cost), 0) AS total_purchase " +
                 "FROM inv_supplier s " +
                 "LEFT JOIN inventory i ON i.supplier_id = s.id " +
-                "WHERE s.is_active = 1 " +
+                "WHERE s.is_active = 1 ";
+            if (storeId > 0) {
+                sql += "AND i.store_id = ? ";
+            }
+            sql +=
                 "GROUP BY s.id, s.name " +
                 "ORDER BY total_bikes DESC LIMIT 8";
             pt = con.prepareStatement(sql);
+            if (storeId > 0) {
+                pt.setInt(1, storeId);
+            }
             rs = pt.executeQuery();
             while (rs.next()) {
                 Vector row = new Vector();
@@ -1103,13 +1344,23 @@ public class inventoryBean {
     }
 
     public double getUnsoldStockValue() throws Exception {
+        return getUnsoldStockValue(0);
+    }
+
+    public double getUnsoldStockValue(int storeId) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
         ResultSet rs = null;
         try {
             con = util.DBConnectionManager.getConnectionFromPool();
-            pt = con.prepareStatement(
-                "SELECT COALESCE(SUM(purchase_cost), 0) FROM inventory WHERE (is_sold = 0 OR is_sold IS NULL)");
+            String sql = "SELECT COALESCE(SUM(purchase_cost), 0) FROM inventory WHERE (is_sold = 0 OR is_sold IS NULL)";
+            if (storeId > 0) {
+                sql += " AND store_id = ?";
+            }
+            pt = con.prepareStatement(sql);
+            if (storeId > 0) {
+                pt.setInt(1, storeId);
+            }
             rs = pt.executeQuery();
             if (rs.next()) return Double.parseDouble(rs.getString(1));
             return 0;

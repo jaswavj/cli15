@@ -8,11 +8,15 @@ int supplierId = 0;
 if (request.getParameter("supplierId") != null && request.getParameter("supplierId").trim().length() > 0) {
     supplierId = Integer.parseInt(request.getParameter("supplierId"));
 }
+int storeId = 0;
+if (request.getParameter("storeId") != null && request.getParameter("storeId").trim().length() > 0) {
+    storeId = Integer.parseInt(request.getParameter("storeId"));
+}
 
 Vector reportRows = new Vector();
 String reportError = null;
 try {
-    reportRows = inv.getInventoryPurchaseReport(fromDate, toDate, supplierId);
+    reportRows = inv.getInventoryPurchaseReport(fromDate, toDate, supplierId, storeId);
 } catch (Exception e) {
     reportError = e.getMessage();
 }
@@ -39,6 +43,7 @@ try {
             <span class="badge bg-light text-dark border">From: <%=fromDate%></span>
             <span class="badge bg-light text-dark border">To: <%=toDate%></span>
             <span class="badge bg-info text-dark">Supplier Filter: <%= (supplierId > 0 ? "Selected" : "All Suppliers") %></span>
+            <span class="badge bg-secondary text-white">Store Filter: <%= (storeId > 0 ? "Selected" : "All Stores") %></span>
         </div>
 
         <% if (reportError != null) { %>
@@ -52,6 +57,7 @@ try {
                         <th>#</th>
                         <th>Date</th>
                         <th>Supplier</th>
+                        <th>Store</th>
                         <th>File No</th>
                         <th>Name</th>
                         <th>Number</th>
@@ -71,13 +77,13 @@ try {
                     if (reportRows != null && reportRows.size() > 0) {
                         for (int i = 0; i < reportRows.size(); i++) {
                             Vector row = (Vector) reportRows.get(i);
-                            double cost = Double.parseDouble(row.elementAt(8).toString());
-                            double expenseTotal = Double.parseDouble(row.elementAt(11).toString());
+                            double cost = Double.parseDouble(row.elementAt(9).toString());
+                            double expenseTotal = Double.parseDouble(row.elementAt(12).toString());
                             totalCost += cost;
                             totalExpense += expenseTotal;
                             int bikeId = Integer.parseInt(row.elementAt(0).toString());
                             String expCssClass = expenseTotal > 0 ? "text-danger fw-bold" : "";
-                            String safeProductName = row.elementAt(4).toString().replace("'", "\\'");
+                            String safeProductName = row.elementAt(5).toString().replace("'", "\\'");
                     %>
                     <tr>
                         <td><%=i + 1%></td>
@@ -86,11 +92,12 @@ try {
                         <td><%=row.elementAt(3)%></td>
                         <td><%=row.elementAt(4)%></td>
                         <td><%=row.elementAt(5)%></td>
-                        <td><%= "1".equals(row.elementAt(6).toString()) ? "Yes" : "No" %></td>
-                        <td><%=row.elementAt(7)%></td>
+                        <td><%=row.elementAt(6)%></td>
+                        <td><%= "1".equals(row.elementAt(7).toString()) ? "Yes" : "No" %></td>
+                        <td><%=row.elementAt(8)%></td>
                         <td><%=String.format("%.3f", cost)%></td>
-                        <td><%=row.elementAt(9)%></td>
                         <td><%=row.elementAt(10)%></td>
+                        <td><%=row.elementAt(11)%></td>
                         <td class="<%=expCssClass%>"><%=String.format("%.3f", expenseTotal)%></td>
                         <td>
                             <button type="button" class="btn btn-outline-info btn-sm"
@@ -102,13 +109,13 @@ try {
                     <%  }
                     } else { %>
                     <tr>
-                        <td colspan="11" class="text-center">No records found for selected filters.</td>
+                        <td colspan="13" class="text-center">No records found for selected filters.</td>
                     </tr>
                     <% } %>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="8" class="text-end">Total</th>
+                        <th colspan="9" class="text-end">Total</th>
                         <th><%=String.format("%.3f", totalCost)%></th>
                         <th></th>
                         <th></th>

@@ -78,6 +78,49 @@ insert  into `inv_expense_entry`(`id`,`bike_id`,`content`,`amount`,`description`
 (1,1,'oil change',500.00,'ss','2026-05-03 00:00:00','2026-05-03 20:41:06',1,1),
 (2,1,'service',250.00,'aa','2026-05-03 00:00:00','2026-05-03 20:41:19',1,1);
 
+/*Table structure for table `inv_store_transfer` */
+
+DROP TABLE IF EXISTS `inv_store_transfer`;
+
+CREATE TABLE `inv_store_transfer` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `bike_id` int NOT NULL,
+  `from_store_id` int NOT NULL,
+  `to_store_id` int NOT NULL,
+  `remark` varchar(255) DEFAULT NULL,
+  `transfer_date_time` datetime NOT NULL,
+  `uid` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `bike_idx` (`bike_id`),
+  KEY `from_store_idx` (`from_store_id`),
+  KEY `to_store_idx` (`to_store_id`),
+  KEY `uid_idx` (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+/*Data for the table `inv_store_transfer` */
+
+insert  into `inv_store_transfer`(`id`,`bike_id`,`from_store_id`,`to_store_id`,`remark`,`transfer_date_time`,`uid`) values 
+(1,1,1,2,'','2026-05-11 23:24:21',1);
+
+/*Table structure for table `inv_stores` */
+
+DROP TABLE IF EXISTS `inv_stores`;
+
+CREATE TABLE `inv_stores` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `code` varchar(255) NOT NULL,
+  `address` text,
+  `is_active` int DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+/*Data for the table `inv_stores` */
+
+insert  into `inv_stores`(`id`,`name`,`code`,`address`,`is_active`) values 
+(1,'hari','01','',1),
+(2,'vel','02','',1);
+
 /*Table structure for table `inv_supplier` */
 
 DROP TABLE IF EXISTS `inv_supplier`;
@@ -106,6 +149,7 @@ DROP TABLE IF EXISTS `inventory`;
 
 CREATE TABLE `inventory` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `store_id` int NOT NULL,
   `file_id` int NOT NULL,
   `product_name` varchar(255) NOT NULL,
   `vehicle_number` varchar(255) NOT NULL,
@@ -128,9 +172,9 @@ CREATE TABLE `inventory` (
 
 /*Data for the table `inventory` */
 
-insert  into `inventory`(`id`,`file_id`,`product_name`,`vehicle_number`,`is_rc`,`model`,`purchase_cost`,`supplier_id`,`inv_date`,`dateTime`,`purchase_remark`,`uid`,`is_sold`,`sale_amount`,`sold_date`,`sold_entry_datetime`,`sold_uid`,`sale_remark`) values 
-(1,1,'HERO','TN74AY5777',1,'2025',150000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,0,0.000,NULL,NULL,NULL,NULL),
-(2,2,'HONDA','TN67AE5672',0,'2024',120000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,1,145000.000,'2026-05-03','2026-05-03 20:26:21',1,'sss');
+insert  into `inventory`(`id`,`store_id`,`file_id`,`product_name`,`vehicle_number`,`is_rc`,`model`,`purchase_cost`,`supplier_id`,`inv_date`,`dateTime`,`purchase_remark`,`uid`,`is_sold`,`sale_amount`,`sold_date`,`sold_entry_datetime`,`sold_uid`,`sale_remark`) values 
+(1,2,1,'HERO','TN74AY5777',1,'2025',150000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,0,0.000,NULL,NULL,NULL,NULL),
+(2,2,2,'HONDA','TN67AE5672',0,'2024',120000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,1,145000.000,'2026-05-03','2026-05-03 20:26:21',1,'sss');
 
 /*Table structure for table `user_modules` */
 

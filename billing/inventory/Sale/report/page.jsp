@@ -5,9 +5,11 @@
 <%
 String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 Vector suppliers = new Vector();
+Vector stores = new Vector();
 String setupError = null;
 try {
     suppliers = inv.getActiveInvSuppliers();
+    stores = inv.getInvStoreDetails();
 } catch (Exception e) {
     setupError = e.getMessage();
 }
@@ -31,20 +33,31 @@ try {
         <% } %>
 
         <form action="<%=contextPath%>/inventory/Sale/report/page0.jsp" method="get" class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">From Date</label>
                 <input type="date" name="fromDate" value="<%=today%>" class="form-control" required>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">To Date</label>
                 <input type="date" name="toDate" value="<%=today%>" class="form-control" required>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label">Supplier (Optional)</label>
                 <select name="supplierId" class="form-select">
                     <option value="0">All Suppliers</option>
                     <% for (int i = 0; i < suppliers.size(); i++) {
                         Vector row = (Vector) suppliers.get(i);
+                    %>
+                        <option value="<%=row.elementAt(0)%>"><%=row.elementAt(1)%></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Store (Optional)</label>
+                <select name="storeId" class="form-select">
+                    <option value="0">All Stores</option>
+                    <% for (int i = 0; i < stores.size(); i++) {
+                        Vector row = (Vector) stores.get(i);
                     %>
                         <option value="<%=row.elementAt(0)%>"><%=row.elementAt(1)%></option>
                     <% } %>

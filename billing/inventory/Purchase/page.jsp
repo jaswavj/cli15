@@ -127,14 +127,24 @@ try {
         <div class="card">
             <div class="card-body">
                 <h5>Purchase List</h5>
+                <div class="mb-3">
+                    <select id="storeFilter" class="form-select form-select-sm w-auto">
+                        <option value="">All Stores</option>
+                        <% for (int i = 0; i < stores.size(); i++) {
+                            Vector srow = (Vector) stores.get(i);
+                        %>
+                            <option value="<%=srow.elementAt(0)%>"><%=srow.elementAt(1)%></option>
+                        <% } %>
+                    </select>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0" id="purchaseListTable">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>File No</th>
                                 <th>Invoice Date</th>
                                 <th>Supplier</th>
-                                <th>File No</th>
+                                <th>Store</th>
                                 <th>Product Name</th>
                                 <th>Vehicle Number</th>
                                 <th>RC</th>
@@ -150,12 +160,13 @@ try {
                             Vector row = (Vector) purchases.get(i);
                             int id = Integer.parseInt(row.elementAt(0).toString());
                             int isRc = Integer.parseInt(row.elementAt(6).toString());
+                            String storeId = row.elementAt(11).toString();
                         %>
-                            <tr>
-                                <td><%= i + 1 %></td>
+                            <tr data-store-id="<%=storeId%>">
+                                <td><%= row.elementAt(3) %></td>
                                 <td><%= row.elementAt(1) %></td>
                                 <td><%= row.elementAt(2) %></td>
-                                <td><%= row.elementAt(3) %></td>
+                                <td><%= row.elementAt(12) %></td>
                                 <td><%= row.elementAt(4) %></td>
                                 <td><%= row.elementAt(5) %></td>
                                 <td><%= isRc == 1 ? "Yes" : "No" %></td>
@@ -196,6 +207,14 @@ try {
             }
             btn.closest('tr').remove();
         };
+
+        document.getElementById('storeFilter').addEventListener('change', function() {
+            var val = this.value;
+            var rows = document.querySelectorAll('#purchaseListTable tbody tr');
+            rows.forEach(function(tr) {
+                tr.style.display = (!val || tr.getAttribute('data-store-id') === val) ? '' : 'none';
+            });
+        });
     </script>
 </body>
 </html>

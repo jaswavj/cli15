@@ -104,10 +104,20 @@ for (int i = 0; i < vecPer.size(); i++) {
         <a href="<%=request.getContextPath()%>/inventory/Supplier/page.jsp" class="sidebar-subitem">Supplier</a>
         <a href="<%=request.getContextPath()%>/inventory/Store/page.jsp" class="sidebar-subitem">Store Master</a>
         <a href="<%=request.getContextPath()%>/inventory/Purchase/page.jsp" class="sidebar-subitem">Purchase</a>
-        <a href="<%=request.getContextPath()%>/inventory/Purchase/report/page.jsp" class="sidebar-subitem">Purchase Report</a>
-        <a href="<%=request.getContextPath()%>/inventory/Sale/page.jsp" class="sidebar-subitem">Sold Entry</a>
-        <a href="<%=request.getContextPath()%>/inventory/Sale/report/page.jsp" class="sidebar-subitem">Sale Report</a>
         <a href="<%=request.getContextPath()%>/inventory/Expense/page.jsp" class="sidebar-subitem">Expense Entry</a>
+        <a href="<%=request.getContextPath()%>/inventory/Sale/page.jsp" class="sidebar-subitem">Sold Entry</a>
+        <a href="<%=request.getContextPath()%>/inventory/Transfer/page.jsp" class="sidebar-subitem">Store Transfer</a>
+        <div class="sidebar-dropdown">
+          <a href="#" class="sidebar-subitem d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#bikeInvReportMenu">
+            <span>Report</span>
+            <i class="fas fa-chevron-down ms-auto"></i>
+          </a>
+          <div class="collapse sidebar-submenu ps-2" id="bikeInvReportMenu">
+            <a href="<%=request.getContextPath()%>/inventory/Purchase/report/page.jsp" class="sidebar-subitem">Purchase Report</a>
+            <a href="<%=request.getContextPath()%>/inventory/Sale/report/page.jsp" class="sidebar-subitem">Sale Report</a>
+          </div>
+        </div>
+
       </div>
     </div>
   <% } %>

@@ -2,18 +2,31 @@
 <%@ page language="java" import="java.util.*"%>
 <jsp:useBean id="inv" class="inventory.inventoryBean" />
 <%
+int storeId = 0;
+if (request.getParameter("storeId") != null && request.getParameter("storeId").trim().length() > 0) {
+    try {
+        storeId = Integer.parseInt(request.getParameter("storeId"));
+    } catch (Exception e) {
+        storeId = 0;
+    }
+}
+
 // Load all dashboard data
+Vector stores = new Vector();
 Vector stats = new Vector();
 Vector recentSales = new Vector();
 Vector monthlyData = new Vector();
 Vector topSuppliers = new Vector();
 String dashError = null;
+double stockValue = 0;
 
 try {
-    stats        = inv.getDashboardStats();
-    recentSales  = inv.getRecentSales(8);
-    monthlyData  = inv.getMonthlyData();
-    topSuppliers = inv.getTopSuppliers();
+    stores       = inv.getActiveInvStores();
+    stats        = inv.getDashboardStats(storeId);
+    recentSales  = inv.getRecentSales(8, storeId);
+    monthlyData  = inv.getMonthlyData(storeId);
+    topSuppliers = inv.getTopSuppliers(storeId);
+    stockValue   = inv.getUnsoldStockValue(storeId);
 } catch (Exception e) {
     dashError = e.getMessage();
 }
@@ -142,7 +155,22 @@ chartPurchaseCostArr.append("]");
                 <h3 class="mb-0 fw-bold">Bike Inventory Dashboard</h3>
                 <small class="text-muted">Overview of purchases, sales, expenses and stock status</small>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-end">
+                <form method="get" action="<%=contextPath%>/inventory/dashboard.jsp" class="d-flex align-items-end gap-2">
+                    <div>
+                        <label class="form-label form-label-sm mb-1">Store</label>
+                        <select name="storeId" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="0" <%=storeId == 0 ? "selected" : ""%>>All Stores</option>
+                            <% for (int i = 0; i < stores.size(); i++) {
+                                Vector srow = (Vector) stores.get(i);
+                                int sid = Integer.parseInt(srow.elementAt(0).toString());
+                            %>
+                                <option value="<%=sid%>" <%=storeId == sid ? "selected" : ""%>><%=srow.elementAt(1)%></option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <noscript><button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button></noscript>
+                </form>
                 <a href="<%=contextPath%>/inventory/Purchase/page.jsp" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Add Purchase
                 </a>
@@ -279,11 +307,7 @@ chartPurchaseCostArr.append("]");
                     <div class="d-flex align-items-start justify-content-between">
                         <div>
                             <div class="kpi-label mb-1">Stock Value</div>
-                            <%
-                            double soldPurchase = 0;
-                            try { soldPurchase = inv.getUnsoldStockValue(); } catch (Exception _e) {}
-                            %>
-                            <div class="kpi-value text-primary" style="font-size:1.35rem"><%=String.format("%.2f", soldPurchase)%></div>
+                            <div class="kpi-value text-primary" style="font-size:1.35rem"><%=String.format("%.2f", stockValue)%></div>
                             <small class="text-muted">unsold bikes cost</small>
                         </div>
                         <div class="kpi-icon" style="background:#e8eaf6">
