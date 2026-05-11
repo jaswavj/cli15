@@ -252,7 +252,298 @@ public class inventoryBean {
         }
     }
 
-    public void addInventoryPurchaseItems(String invDate, int supplierId, String purchaseRemark, int uid,
+    public int checkInvStoreNameExist(String name) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        con = util.DBConnectionManager.getConnectionFromPool();
+        try {
+            int storeId = 0;
+            pt = con.prepareStatement("SELECT id FROM inv_stores WHERE name = ?");
+            pt.setString(1, name);
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                storeId = rs.getInt(1);
+            }
+            return storeId;
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { }
+                rs = null;
+            }
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+                pt = null;
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+                con = null;
+            }
+        }
+    }
+
+    public int checkInvStoreNameExistForEdit(String name, int id) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        con = util.DBConnectionManager.getConnectionFromPool();
+        try {
+            int storeId = 0;
+            pt = con.prepareStatement("SELECT id FROM inv_stores WHERE name = ? AND id != ?");
+            pt.setString(1, name);
+            pt.setInt(2, id);
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                storeId = rs.getInt(1);
+            }
+            return storeId;
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { }
+                rs = null;
+            }
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+                pt = null;
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+                con = null;
+            }
+        }
+    }
+
+    public int checkInvStoreCodeExist(String code) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        con = util.DBConnectionManager.getConnectionFromPool();
+        try {
+            int storeId = 0;
+            pt = con.prepareStatement("SELECT id FROM inv_stores WHERE code = ?");
+            pt.setString(1, code);
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                storeId = rs.getInt(1);
+            }
+            return storeId;
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { }
+                rs = null;
+            }
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+                pt = null;
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+                con = null;
+            }
+        }
+    }
+
+    public int checkInvStoreCodeExistForEdit(String code, int id) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        con = util.DBConnectionManager.getConnectionFromPool();
+        try {
+            int storeId = 0;
+            pt = con.prepareStatement("SELECT id FROM inv_stores WHERE code = ? AND id != ?");
+            pt.setString(1, code);
+            pt.setInt(2, id);
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                storeId = rs.getInt(1);
+            }
+            return storeId;
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { }
+                rs = null;
+            }
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+                pt = null;
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+                con = null;
+            }
+        }
+    }
+
+    public void addInvStore(String name, String code, String address) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            con.setAutoCommit(false);
+
+            String sql = "INSERT INTO inv_stores(name, code, address, is_active) VALUES (?, ?, ?, 1)";
+            pt = con.prepareStatement(sql);
+            pt.setString(1, name);
+            pt.setString(2, code);
+            pt.setString(3, address);
+            pt.executeUpdate();
+
+            con.commit();
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
+            }
+            throw e;
+        } finally {
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+            }
+        }
+    }
+
+    public void editInvStore(int id, String name, String code, String address) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            con.setAutoCommit(false);
+
+            pt = con.prepareStatement("UPDATE inv_stores SET name=?, code=?, address=? WHERE id=?");
+            pt.setString(1, name);
+            pt.setString(2, code);
+            pt.setString(3, address);
+            pt.setInt(4, id);
+            pt.executeUpdate();
+
+            con.commit();
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
+            }
+            throw e;
+        } finally {
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+            }
+        }
+    }
+
+    public void blockInvStore(int id) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            con.setAutoCommit(false);
+
+            pt = con.prepareStatement("UPDATE inv_stores SET is_active=0 WHERE id=?");
+            pt.setInt(1, id);
+            pt.executeUpdate();
+
+            con.commit();
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
+            }
+            throw e;
+        } finally {
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+            }
+        }
+    }
+
+    public Vector getInvStoreDetails() throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+
+            String sql = "SELECT id, name, code, CASE WHEN address = '' OR address IS NULL THEN '-' ELSE address END AS address "
+                    + "FROM inv_stores WHERE is_active = 1 ORDER BY id DESC";
+            pt = con.prepareStatement(sql);
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));
+                row.addElement(rs.getString(2));
+                row.addElement(rs.getString(3));
+                row.addElement(rs.getString(4));
+                major.addElement(row);
+            }
+
+            return major;
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { }
+                rs = null;
+            }
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+                pt = null;
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+                con = null;
+            }
+        }
+    }
+
+    public Vector getActiveInvStores() throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+            pt = con.prepareStatement("SELECT id, name, code FROM inv_stores WHERE is_active = 1 ORDER BY name");
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));
+                row.addElement(rs.getString(2));
+                row.addElement(rs.getString(3));
+                major.addElement(row);
+            }
+            return major;
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) { }
+                rs = null;
+            }
+            if (pt != null) {
+                try { pt.close(); } catch (SQLException e) { }
+                pt = null;
+            }
+            if (con != null) {
+                try { con.close(); } catch (Exception e) { }
+                con = null;
+            }
+        }
+    }
+
+    public void addInventoryPurchaseItems(String invDate, int storeId, int supplierId, String purchaseRemark, int uid,
                                           String[] fileIds, String[] productNames, String[] vehicleNumbers,
                                           String[] isRcValues, String[] modelYears, String[] purchaseCosts) throws Exception {
         Connection con = null;
@@ -262,8 +553,8 @@ public class inventoryBean {
             con = util.DBConnectionManager.getConnectionFromPool();
             con.setAutoCommit(false);
 
-            String sql = "INSERT INTO inventory(file_id, product_name, vehicle_number, is_rc, model, purchase_cost, inv_date, dateTime, purchase_remark, uid, is_sold, sale_amount, sold_date, sale_remark, supplier_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 0, 0, NULL, NULL, ?)";
+                String sql = "INSERT INTO inventory(file_id, product_name, vehicle_number, is_rc, model, purchase_cost, inv_date, dateTime, purchase_remark, uid, is_sold, sale_amount, sold_date, sale_remark, supplier_id, store_id) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 0, 0, NULL, NULL, ?, ?)";
             pt = con.prepareStatement(sql);
 
             for (int i = 0; i < fileIds.length; i++) {
@@ -304,6 +595,7 @@ public class inventoryBean {
                 pt.setString(8, purchaseRemark);
                 pt.setInt(9, uid);
                 pt.setInt(10, supplierId);
+                pt.setInt(11, storeId);
                 pt.addBatch();
             }
 
@@ -537,9 +829,11 @@ public class inventoryBean {
 
             String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, "
                     + "i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
-                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost "
+                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.store_id, 0) AS store_id, "
+                    + "COALESCE(st.name, '-') AS store_name "
                     + "FROM inventory i "
                     + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
                     + "WHERE (i.is_sold = 0 OR i.is_sold IS NULL) "
                     + "ORDER BY i.inv_date DESC, i.id DESC";
 
@@ -557,6 +851,8 @@ public class inventoryBean {
                 row.addElement(rs.getString(7));
                 row.addElement(rs.getString(8));
                 row.addElement(rs.getString(9));
+                row.addElement(rs.getString(10));
+                row.addElement(rs.getString(11));
                 major.addElement(row);
             }
 

@@ -5,10 +5,12 @@
 String msg = request.getParameter("msg");
 String type = request.getParameter("type");
 Vector suppliers = new Vector();
+Vector stores = new Vector();
 Vector purchases = new Vector();
 String setupError = null;
 try {
     suppliers = inv.getActiveInvSuppliers();
+    stores = inv.getActiveInvStores();
     purchases = inv.getInventoryPurchases();
 } catch (Exception e) {
     setupError = e.getMessage();
@@ -50,13 +52,24 @@ try {
             <div class="card-body">
                 <form action="<%=contextPath%>/inventory/Purchase/page1.jsp" method="post" id="purchaseForm">
                     <div class="row g-3 mb-3">
-                        <div class="col-md-4 input-outline">
-                            <input type="date" name="invDate" class="form-control" required>
-                            <label>Invoice Date</label>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Invoice Date</label>
+                            <input type="date" name="invDate" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Supplier</label>
-                            <select name="supplierId" class="form-select" required>
+                            <label class="form-label">Store</label>
+                            <select name="storeId" class="form-select" required>
+                                <option value="">Select Store</option>
+                                <% for (int i = 0; i < stores.size(); i++) {
+                                    Vector row = (Vector) stores.get(i);
+                                %>
+                                    <option value="<%=row.elementAt(0)%>"><%=row.elementAt(1)%> (<%=row.elementAt(2)%>)</option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small mb-1">Supplier</label>
+                            <select name="supplierId" class="form-select form-select-sm" required>
                                 <option value="">Select Supplier</option>
                                 <% for (int i = 0; i < suppliers.size(); i++) {
                                     Vector row = (Vector) suppliers.get(i);
@@ -65,9 +78,9 @@ try {
                                 <% } %>
                             </select>
                         </div>
-                        <div class="col-md-4 input-outline">
-                            <input type="text" name="purchaseRemark" class="form-control">
-                            <label>Purchase Remark</label>
+                        <div class="col-md-12">
+                            <label class="form-label small mb-1">Purchase Remark</label>
+                            <input type="text" name="purchaseRemark" class="form-control form-control-sm">
                         </div>
                     </div>
 

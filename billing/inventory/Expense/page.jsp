@@ -7,9 +7,11 @@ String type = request.getParameter("type");
 String openBikeId = request.getParameter("openBikeId");
 
 Vector unsoldList = new Vector();
+Vector stores = new Vector();
 String loadError = null;
 try {
     unsoldList = inv.getUnsoldInventory();
+    stores = inv.getActiveInvStores();
 } catch (Exception e) {
     loadError = e.getMessage();
 }
@@ -43,12 +45,24 @@ try {
         <div class="card">
             <div class="card-body">
                 <div class="row align-items-center mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <h5 class="mb-0">Unsold Bikes (<span class="text-primary" id="filteredCount"><%=unsoldList.size()%></span> of <%=unsoldList.size()%>)</h5>
                     </div>
-                    <div class="col-md-6">
-                        <input type="text" id="filterInput" class="form-control"
-                            placeholder="Search by product name or vehicle number..."
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Filter by Store</label>
+                        <select id="storeFilter" class="form-select form-select-sm" onchange="filterRows()">
+                            <option value="">All Stores</option>
+                            <% for (int i = 0; i < stores.size(); i++) {
+                                Vector row = (Vector) stores.get(i);
+                            %>
+                                <option value="<%=row.elementAt(0)%>"><%=row.elementAt(1)%> (<%=row.elementAt(2)%>)</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Search</label>
+                        <input type="text" id="filterInput" class="form-control form-control-sm"
+                            placeholder="Search by product or vehicle..."
                             oninput="filterRows()">
                     </div>
                 </div>
@@ -57,6 +71,7 @@ try {
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Store</th>
                                 <th>Invoice Date</th>
                                 <th>Supplier</th>
                                 <th>File No</th>
@@ -73,7 +88,7 @@ try {
                         if (unsoldList.size() == 0 && loadError == null) {
                         %>
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-3">No unsold bikes found.</td>
+                                <td colspan="11" class="text-center text-muted py-3">No unsold bikes found.</td>
                             </tr>
                         <%
                         }
@@ -82,9 +97,11 @@ try {
                             int bikeId = Integer.parseInt(row.elementAt(0).toString());
                             String productName = row.elementAt(4).toString();
                             String vehicleNumber = row.elementAt(5).toString();
+                            String storeId = row.elementAt(9).toString();
                         %>
-                            <tr data-product="<%=productName.toLowerCase()%>" data-vehicle="<%=vehicleNumber.toLowerCase()%>">
+                            <tr data-product="<%=productName.toLowerCase()%>" data-vehicle="<%=vehicleNumber.toLowerCase()%>" data-store="<%=storeId%>">
                                 <td class="row-num"><%=i + 1%></td>
+                                <td><%=row.elementAt(10)%></td>
                                 <td><%=row.elementAt(1)%></td>
                                 <td><%=row.elementAt(2)%></td>
                                 <td><%=row.elementAt(3)%></td>
@@ -171,12 +188,16 @@ try {
     <script>
     window.filterRows = function() {
         var keyword = document.getElementById('filterInput').value.toLowerCase().trim();
+        var storeId = document.getElementById('storeFilter').value;
         var rows = document.querySelectorAll('#bikeTable tbody tr[data-product]');
         var visible = 0, num = 0;
         rows.forEach(function(row) {
-            var match = !keyword ||
+            var keywordMatch = !keyword ||
                 (row.getAttribute('data-product') || '').indexOf(keyword) !== -1 ||
                 (row.getAttribute('data-vehicle') || '').indexOf(keyword) !== -1;
+            var rowStore = row.getAttribute('data-store') || '';
+            var storeMatch = !storeId || rowStore === storeId;
+            var match = keywordMatch && storeMatch;
             row.style.display = match ? '' : 'none';
             if (match) {
                 num++;

@@ -9,6 +9,7 @@ if (uidObj == null) {
 int uid = uidObj.intValue();
 
 String invDate = request.getParameter("invDate");
+String storeIdStr = request.getParameter("storeId");
 String supplierIdStr = request.getParameter("supplierId");
 String purchaseRemark = request.getParameter("purchaseRemark");
 
@@ -19,8 +20,8 @@ String[] isRcValues = request.getParameterValues("isRc[]");
 String[] modelYears = request.getParameterValues("modelYear[]");
 String[] purchaseCosts = request.getParameterValues("purchaseCost[]");
 
-if (invDate == null || invDate.trim().length() == 0 || supplierIdStr == null || supplierIdStr.trim().length() == 0) {
-    response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=Invoice+date+and+supplier+are+required&type=danger");
+if (invDate == null || invDate.trim().length() == 0 || storeIdStr == null || storeIdStr.trim().length() == 0 || supplierIdStr == null || supplierIdStr.trim().length() == 0) {
+    response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=Invoice+date,+store+and+supplier+are+required&type=danger");
     return;
 }
 
@@ -30,8 +31,9 @@ if (fileIds == null || fileIds.length == 0) {
 }
 
 try {
+    int storeId = Integer.parseInt(storeIdStr);
     int supplierId = Integer.parseInt(supplierIdStr);
-    inv.addInventoryPurchaseItems(invDate, supplierId, purchaseRemark, uid, fileIds, productNames, vehicleNumbers, isRcValues, modelYears, purchaseCosts);
+    inv.addInventoryPurchaseItems(invDate, storeId, supplierId, purchaseRemark, uid, fileIds, productNames, vehicleNumbers, isRcValues, modelYears, purchaseCosts);
     response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=Purchase+saved+successfully&type=success");
 } catch (Exception e) {
     response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8") + "&type=danger");
