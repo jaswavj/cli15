@@ -11,12 +11,23 @@ if (request.getParameter("storeId") != null && request.getParameter("storeId").t
     }
 }
 
+int selectedBikeId = 0;
+if (request.getParameter("bikeId") != null && request.getParameter("bikeId").trim().length() > 0) {
+    try {
+        selectedBikeId = Integer.parseInt(request.getParameter("bikeId"));
+    } catch (Exception e) {
+        selectedBikeId = 0;
+    }
+}
+
 // Load all dashboard data
 Vector stores = new Vector();
 Vector stats = new Vector();
 Vector recentSales = new Vector();
 Vector monthlyData = new Vector();
 Vector topSuppliers = new Vector();
+Vector bikeEnquiryList = new Vector();
+Vector selectedBike = null;
 String dashError = null;
 double stockValue = 0;
 
@@ -26,9 +37,18 @@ try {
     recentSales  = inv.getRecentSales(8, storeId);
     monthlyData  = inv.getMonthlyData(storeId);
     topSuppliers = inv.getTopSuppliers(storeId);
+    bikeEnquiryList = inv.getBikeEnquiryData(storeId);
     stockValue   = inv.getUnsoldStockValue(storeId);
 } catch (Exception e) {
     dashError = e.getMessage();
+}
+
+for (int i = 0; i < bikeEnquiryList.size(); i++) {
+    Vector brow = (Vector) bikeEnquiryList.get(i);
+    if (selectedBikeId > 0 && Integer.parseInt(brow.elementAt(0).toString()) == selectedBikeId) {
+        selectedBike = brow;
+        break;
+    }
 }
 
 int totalUnsold = 0, totalSold = 0, todaySold = 0, thisMonthPurchased = 0, totalSuppliers = 0;
@@ -142,6 +162,91 @@ chartPurchaseCostArr.append("]");
             border-radius: 4px;
             background: linear-gradient(90deg, #0d6efd, #6ea8fe);
         }
+        .store-filter-group .form-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #4b5563;
+            letter-spacing: 0.01em;
+        }
+        .store-filter-select {
+            min-width: 190px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid #cfd4dc;
+            background-color: #fff;
+            color: #1f2937;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .store-filter-select:hover {
+            border-color: #b8c0cc;
+        }
+        .store-filter-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.14);
+        }
+        .bike-enquiry-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        .bike-enquiry-select {
+            min-width: 320px;
+            height: 42px;
+            border-radius: 10px;
+            border: 1px solid #cfd4dc;
+            font-weight: 500;
+        }
+        .bike-enquiry-select::placeholder {
+            color: #6b7280;
+            font-weight: 400;
+        }
+        .bike-enquiry-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.14);
+        }
+        .bike-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+        .bike-detail-item {
+            background: #f8fafc;
+            border: 1px solid #eef2f6;
+            border-radius: 10px;
+            padding: 0.6rem 0.75rem;
+        }
+        .bike-detail-label {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+            margin-bottom: 0.2rem;
+        }
+        .bike-detail-value {
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: #1f2937;
+            word-break: break-word;
+        }
+        @media (max-width: 768px) {
+            .header-actions {
+                width: 100%;
+                margin-top: 0.75rem;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            .store-filter-select {
+                min-width: 170px;
+            }
+            .bike-enquiry-select {
+                min-width: 100%;
+            }
+            .bike-detail-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
@@ -150,16 +255,16 @@ chartPurchaseCostArr.append("]");
     <div class="container-fluid p-4">
 
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
             <div>
                 <h3 class="mb-0 fw-bold">Bike Inventory Dashboard</h3>
                 <small class="text-muted">Overview of purchases, sales, expenses and stock status</small>
             </div>
-            <div class="d-flex gap-2 align-items-end">
+            <div class="d-flex gap-2 align-items-end header-actions">
                 <form method="get" action="<%=contextPath%>/inventory/dashboard.jsp" class="d-flex align-items-end gap-2">
-                    <div>
+                    <div class="store-filter-group">
                         <label class="form-label form-label-sm mb-1">Store</label>
-                        <select name="storeId" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <select name="storeId" class="form-select form-select-sm store-filter-select" onchange="this.form.submit()">
                             <option value="0" <%=storeId == 0 ? "selected" : ""%>>All Stores</option>
                             <% for (int i = 0; i < stores.size(); i++) {
                                 Vector srow = (Vector) stores.get(i);
@@ -168,6 +273,7 @@ chartPurchaseCostArr.append("]");
                                 <option value="<%=sid%>" <%=storeId == sid ? "selected" : ""%>><%=srow.elementAt(1)%></option>
                             <% } %>
                         </select>
+                        <input type="hidden" name="bikeId" value="<%=selectedBikeId%>">
                     </div>
                     <noscript><button type="submit" class="btn btn-outline-secondary btn-sm">Apply</button></noscript>
                 </form>
@@ -183,6 +289,75 @@ chartPurchaseCostArr.append("]");
         <% if (dashError != null) { %>
         <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error: <%=dashError%></div>
         <% } %>
+
+        <!-- Bike Enquiry -->
+        <div class="card bike-enquiry-card p-3 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+                <div>
+                    <div class="section-title mb-1">Single Bike Enquiry</div>
+                    <small class="text-muted">Type vehicle number and choose from autocomplete to view complete details</small>
+                </div>
+                <form method="get" action="<%=contextPath%>/inventory/dashboard.jsp" class="d-flex align-items-center gap-2 flex-wrap" id="bikeEnquiryForm">
+                    <input type="hidden" name="storeId" value="<%=storeId%>">
+                    <input type="hidden" name="bikeId" id="bikeIdHidden" value="<%=selectedBikeId%>">
+                    <input
+                        type="text"
+                        id="bikeVehicleInput"
+                        class="form-control bike-enquiry-select"
+                        list="bikeVehicleList"
+                        placeholder="Search by Vehicle Number"
+                        autocomplete="off"
+                        value="<%=selectedBike != null ? selectedBike.elementAt(6).toString() : ""%>"
+                    >
+                    <datalist id="bikeVehicleList">
+                        <% for (int i = 0; i < bikeEnquiryList.size(); i++) {
+                            Vector brow = (Vector) bikeEnquiryList.get(i);
+                            int bid = Integer.parseInt(brow.elementAt(0).toString());
+                            String bname = brow.elementAt(5).toString();
+                            String bvehicle = brow.elementAt(6).toString();
+                        %>
+                        <option value="<%=bvehicle%>" data-bikeid="<%=bid%>" label="<%=bname%>"></option>
+                        <% } %>
+                    </datalist>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="submitBikeEnquiry()">Search</button>
+                    <noscript><button type="submit" class="btn btn-outline-secondary btn-sm">Show</button></noscript>
+                </form>
+            </div>
+
+            <% if (selectedBike != null) {
+                double enqPurchaseCost = Double.parseDouble(selectedBike.elementAt(9).toString());
+                double enqExpense = Double.parseDouble(selectedBike.elementAt(15).toString());
+                double enqTotalCost = enqPurchaseCost + enqExpense;
+                int enqIsSold = Integer.parseInt(selectedBike.elementAt(11).toString());
+                double enqSaleAmount = Double.parseDouble(selectedBike.elementAt(13).toString());
+                double enqProfit = enqSaleAmount - enqTotalCost;
+            %>
+            <div class="bike-detail-grid mt-2">
+                <div class="bike-detail-item"><div class="bike-detail-label">Bike ID</div><div class="bike-detail-value"><%=selectedBike.elementAt(0)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Product Name</div><div class="bike-detail-value"><%=selectedBike.elementAt(5)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Vehicle Number</div><div class="bike-detail-value"><%=selectedBike.elementAt(6)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Store</div><div class="bike-detail-value"><%=selectedBike.elementAt(2)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Supplier</div><div class="bike-detail-value"><%=selectedBike.elementAt(3)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">File No</div><div class="bike-detail-value"><%=selectedBike.elementAt(4)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Invoice Date</div><div class="bike-detail-value"><%=selectedBike.elementAt(1)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Model Year</div><div class="bike-detail-value"><%=selectedBike.elementAt(8)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">RC Available</div><div class="bike-detail-value"><%= "1".equals(selectedBike.elementAt(7).toString()) ? "Yes" : "No" %></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Purchase Cost</div><div class="bike-detail-value"><%=String.format("%.2f", enqPurchaseCost)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Expense Total</div><div class="bike-detail-value"><%=String.format("%.2f", enqExpense)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Total Cost</div><div class="bike-detail-value"><%=String.format("%.2f", enqTotalCost)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Sold Status</div><div class="bike-detail-value"><%= enqIsSold == 1 ? "Sold" : "In Stock" %></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Sold Date</div><div class="bike-detail-value"><%=selectedBike.elementAt(12)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Sale Amount</div><div class="bike-detail-value"><%=String.format("%.2f", enqSaleAmount)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Profit / Loss</div><div class="bike-detail-value <%=enqProfit >= 0 ? "text-success" : "text-danger"%>"><%=String.format("%.2f", enqProfit)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Purchase Remark</div><div class="bike-detail-value"><%=selectedBike.elementAt(10)%></div></div>
+                <div class="bike-detail-item"><div class="bike-detail-label">Sale Remark</div><div class="bike-detail-value"><%=selectedBike.elementAt(14)%></div></div>
+            </div>
+            <% } else if (selectedBikeId > 0) { %>
+            <div class="alert alert-warning mb-0 mt-2">Selected bike not found for this store filter.</div>
+            <% } else { %>
+            <div class="text-muted mt-2">Type vehicle number above to fetch full bike enquiry details.</div>
+            <% } %>
+        </div>
 
         <!-- ── KPI CARDS ── -->
         <div class="row g-3 mb-4">
@@ -448,6 +623,37 @@ chartPurchaseCostArr.append("]");
     </div>
 
     <script>
+    function submitBikeEnquiry() {
+        var form = document.getElementById('bikeEnquiryForm');
+        var input = document.getElementById('bikeVehicleInput');
+        var hiddenBikeId = document.getElementById('bikeIdHidden');
+        var typedVehicle = (input.value || '').trim().toLowerCase();
+        var options = document.querySelectorAll('#bikeVehicleList option');
+        var resolvedBikeId = '0';
+
+        for (var i = 0; i < options.length; i++) {
+            var optVehicle = (options[i].value || '').trim().toLowerCase();
+            if (optVehicle === typedVehicle) {
+                resolvedBikeId = options[i].getAttribute('data-bikeid') || '0';
+                break;
+            }
+        }
+
+        hiddenBikeId.value = resolvedBikeId;
+        form.submit();
+    }
+
+    document.getElementById('bikeVehicleInput').addEventListener('change', function() {
+        submitBikeEnquiry();
+    });
+
+    document.getElementById('bikeVehicleInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitBikeEnquiry();
+        }
+    });
+
     var chartLabels = <%=chartLabels%>;
     var chartPurchaseCount = <%=chartPurchaseCount%>;
     var chartSoldCount = <%=chartSoldCount%>;

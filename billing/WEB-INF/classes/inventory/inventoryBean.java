@@ -832,6 +832,66 @@ public class inventoryBean {
         }
     }
 
+    public Vector getBikeEnquiryData(int storeId) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+
+            String sql = "SELECT i.id, i.inv_date, COALESCE(st.name, '-') AS store_name, COALESCE(s.name, '-') AS supplier_name, "
+                    + "i.file_id, i.product_name, i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
+                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.purchase_remark, '-') AS purchase_remark, "
+                    + "COALESCE(i.is_sold, 0) AS is_sold, COALESCE(i.sold_date, '-') AS sold_date, COALESCE(i.sale_amount, 0) AS sale_amount, "
+                    + "COALESCE(i.sale_remark, '-') AS sale_remark, "
+                    + "COALESCE((SELECT SUM(e.amount) FROM inv_expense_entry e WHERE e.bike_id = i.id AND e.is_active = 1), 0) AS expense_total "
+                    + "FROM inventory i "
+                    + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id ";
+
+            if (storeId > 0) {
+                sql += "WHERE i.store_id = ? ";
+            }
+
+            sql += "ORDER BY i.id DESC";
+
+            pt = con.prepareStatement(sql);
+            if (storeId > 0) {
+                pt.setInt(1, storeId);
+            }
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));
+                row.addElement(rs.getString(2));
+                row.addElement(rs.getString(3));
+                row.addElement(rs.getString(4));
+                row.addElement(rs.getString(5));
+                row.addElement(rs.getString(6));
+                row.addElement(rs.getString(7));
+                row.addElement(rs.getString(8));
+                row.addElement(rs.getString(9));
+                row.addElement(rs.getString(10));
+                row.addElement(rs.getString(11));
+                row.addElement(rs.getString(12));
+                row.addElement(rs.getString(13));
+                row.addElement(rs.getString(14));
+                row.addElement(rs.getString(15));
+                row.addElement(rs.getString(16));
+                major.addElement(row);
+            }
+
+            return major;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
+        }
+    }
+
     public Vector getUnsoldInventory() throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
