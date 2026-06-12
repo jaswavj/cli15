@@ -7,11 +7,15 @@ String type = request.getParameter("type");
 Vector suppliers = new Vector();
 Vector stores = new Vector();
 Vector purchases = new Vector();
+Vector vehicleNumbers = new Vector();
+int nextFileId = 1;
 String setupError = null;
 try {
     suppliers = inv.getActiveInvSuppliers();
     stores = inv.getActiveInvStores();
     purchases = inv.getInventoryPurchases();
+    nextFileId = inv.getMaxFileId() + 1;
+    vehicleNumbers = inv.getInventoryVehicleNumbers();
 } catch (Exception e) {
     setupError = e.getMessage();
 }
@@ -25,6 +29,8 @@ try {
     <%@ include file="/assets/common/head.jsp" %>
     <style>
         .table-input { min-width: 140px; }
+        .table-input-sm { min-width: 80px; width: 80px; }
+        .table-input-md { min-width: 100px; width: 100px; }
     </style>
 </head>
 <body>
@@ -92,6 +98,7 @@ try {
                                     <th>Product Name</th>
                                     <th>Vehicle Number</th>
                                     <th>RC</th>
+                                    <th>NOC</th>
                                     <th>Model Year</th>
                                     <th>Purchase Cost</th>
                                     <th>Action</th>
@@ -99,16 +106,22 @@ try {
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><input type="number" name="fileId[]" class="form-control table-input" required></td>
+                                    <td><input type="number" name="fileId[]" class="form-control table-input file-no-input" value="<%= nextFileId %>" readonly></td>
                                     <td><input type="text" name="productName[]" class="form-control table-input" required></td>
-                                    <td><input type="text" name="vehicleNumber[]" class="form-control table-input" required></td>
+                                    <td><input type="text" name="vehicleNumber[]" class="form-control table-input vehicle-number-input" required></td>
                                     <td>
-                                        <select name="isRc[]" class="form-select table-input">
+                                        <select name="isRc[]" class="form-select table-input-sm">
                                             <option value="1">Yes</option>
                                             <option value="0" selected>No</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" name="modelYear[]" class="form-control table-input" placeholder="e.g. 2024"></td>
+                                    <td>
+                                        <select name="isNoc[]" class="form-select table-input-sm">
+                                            <option value="1">Yes</option>
+                                            <option value="0" selected>No</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" name="modelYear[]" class="form-control table-input-md" placeholder="e.g. 2024"></td>
                                     <td><input type="number" step="0.001" name="purchaseCost[]" class="form-control table-input" value="0"></td>
                                     <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button></td>
                                 </tr>
@@ -147,8 +160,7 @@ try {
                                 <th>Store</th>
                                 <th>Product Name</th>
                                 <th>Vehicle Number</th>
-                                <th>RC</th>
-                                <th>Model Year</th>
+                                <th>RC</th>                                <th>NOC</th>                                <th>Model Year</th>
                                 <th>Cost</th>
                                 <th>Remark</th>
                                 <th>Action</th>
@@ -159,20 +171,20 @@ try {
                         for (int i = 0; i < purchases.size(); i++) {
                             Vector row = (Vector) purchases.get(i);
                             int id = Integer.parseInt(row.elementAt(0).toString());
-                            int isRc = Integer.parseInt(row.elementAt(6).toString());
-                            String storeId = row.elementAt(11).toString();
+                            String storeId = row.elementAt(12).toString();
                         %>
                             <tr data-store-id="<%=storeId%>">
                                 <td><%= row.elementAt(3) %></td>
                                 <td><%= row.elementAt(1) %></td>
                                 <td><%= row.elementAt(2) %></td>
-                                <td><%= row.elementAt(12) %></td>
+                                <td><%= row.elementAt(13) %></td>
                                 <td><%= row.elementAt(4) %></td>
                                 <td><%= row.elementAt(5) %></td>
-                                <td><%= isRc == 1 ? "Yes" : "No" %></td>
-                                <td><%= row.elementAt(7) %></td>
+                                <td><%= "1".equals(row.elementAt(6).toString()) ? "Yes" : "No" %></td>
+                                <td><%= "1".equals(row.elementAt(7).toString()) ? "Yes" : "No" %></td>
                                 <td><%= row.elementAt(8) %></td>
                                 <td><%= row.elementAt(9) %></td>
+                                <td><%= row.elementAt(10) %></td>
                                 <td>
                                     <a href="<%=contextPath%>/inventory/Purchase/edit.jsp?id=<%=id%>" class="btn btn-warning btn-sm">Edit</a>
                                 </td>
@@ -186,18 +198,41 @@ try {
     </div>
 
     <script>
+        var baseFileId = <%= nextFileId %>;
+        var existingVehicleNumbers = [
+            <% for (int vi = 0; vi < vehicleNumbers.size(); vi++) {
+                String vn = vehicleNumbers.get(vi).toString().replace("'", "\\'");
+            %>'<%= vn %>'<% if (vi < vehicleNumbers.size() - 1) { %>,<% } %>
+            <% } %>
+        ].map(function(v){ return v.trim().toUpperCase(); });
+
+        function attachVehicleCheck(input) {
+            input.addEventListener('blur', function() {
+                var val = this.value.trim().toUpperCase();
+                if (val && existingVehicleNumbers.indexOf(val) !== -1) {
+                    alert('Warning: Vehicle Number "' + this.value.trim() + '" already exists in inventory!');
+                }
+            });
+        }
+
+        // Attach to the initial row
+        document.querySelectorAll('.vehicle-number-input').forEach(attachVehicleCheck);
+
         window.addRow = function() {
             var tbody = document.querySelector('#itemTable tbody');
+            var nextId = baseFileId + tbody.rows.length;
             var tr = document.createElement('tr');
             tr.innerHTML = ''
-                + '<td><input type="number" name="fileId[]" class="form-control table-input" required></td>'
+                + '<td><input type="number" name="fileId[]" class="form-control table-input file-no-input" value="' + nextId + '" readonly></td>'
                 + '<td><input type="text" name="productName[]" class="form-control table-input" required></td>'
-                + '<td><input type="text" name="vehicleNumber[]" class="form-control table-input" required></td>'
-                + '<td><select name="isRc[]" class="form-select table-input"><option value="1">Yes</option><option value="0" selected>No</option></select></td>'
-                + '<td><input type="text" name="modelYear[]" class="form-control table-input" placeholder="e.g. 2024"></td>'
+                + '<td><input type="text" name="vehicleNumber[]" class="form-control table-input vehicle-number-input" required></td>'
+                + '<td><select name="isRc[]" class="form-select table-input-sm"><option value="1">Yes</option><option value="0" selected>No</option></select></td>'
+                + '<td><select name="isNoc[]" class="form-select table-input-sm"><option value="1">Yes</option><option value="0" selected>No</option></select></td>'
+                + '<td><input type="text" name="modelYear[]" class="form-control table-input-md" placeholder="e.g. 2024"></td>'
                 + '<td><input type="number" step="0.001" name="purchaseCost[]" class="form-control table-input" value="0"></td>'
                 + '<td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button></td>';
             tbody.appendChild(tr);
+            attachVehicleCheck(tr.querySelector('.vehicle-number-input'));
         };
 
         window.removeRow = function(btn) {
@@ -206,6 +241,12 @@ try {
                 return;
             }
             btn.closest('tr').remove();
+            // Reassign file IDs after removal
+            var rows = tbody.querySelectorAll('tr');
+            rows.forEach(function(row, idx) {
+                var fileInput = row.querySelector('.file-no-input');
+                if (fileInput) fileInput.value = baseFileId + idx;
+            });
         };
 
         document.getElementById('storeFilter').addEventListener('change', function() {

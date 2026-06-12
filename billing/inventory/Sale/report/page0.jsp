@@ -28,9 +28,9 @@ double totalProfit   = 0;
 if (reportRows != null && reportRows.size() > 0) {
     for (int i = 0; i < reportRows.size(); i++) {
         Vector row = (Vector) reportRows.get(i);
-        double purchaseCost = Double.parseDouble(row.elementAt(10).toString());
-        double expenseTotal = Double.parseDouble(row.elementAt(11).toString());
-        double saleAmount   = Double.parseDouble(row.elementAt(12).toString());
+        double purchaseCost = Double.parseDouble(row.elementAt(11).toString());
+        double expenseTotal = Double.parseDouble(row.elementAt(12).toString());
+        double saleAmount   = Double.parseDouble(row.elementAt(13).toString());
         double profit       = saleAmount - purchaseCost - expenseTotal;
         totalPurchase += purchaseCost;
         totalExpense  += expenseTotal;
@@ -128,6 +128,7 @@ if (reportRows != null && reportRows.size() > 0) {
                         <th>Product Name</th>
                         <th>Vehicle Number</th>
                         <th>RC</th>
+                        <th>NOC</th>
                         <th>Model Year</th>
                         <th>Purchase Cost</th>
                         <th>Total Expense</th>
@@ -142,9 +143,9 @@ if (reportRows != null && reportRows.size() > 0) {
                 if (reportRows != null && reportRows.size() > 0) {
                     for (int i = 0; i < reportRows.size(); i++) {
                         Vector row = (Vector) reportRows.get(i);
-                        double purchaseCost = Double.parseDouble(row.elementAt(10).toString());
-                        double expenseTotal = Double.parseDouble(row.elementAt(11).toString());
-                        double saleAmount   = Double.parseDouble(row.elementAt(12).toString());
+                        double purchaseCost = Double.parseDouble(row.elementAt(11).toString());
+                        double expenseTotal = Double.parseDouble(row.elementAt(12).toString());
+                        double saleAmount   = Double.parseDouble(row.elementAt(13).toString());
                         double profit       = saleAmount - purchaseCost - expenseTotal;
                         int bikeId = Integer.parseInt(row.elementAt(0).toString());
                 %>
@@ -158,7 +159,8 @@ if (reportRows != null && reportRows.size() > 0) {
                     <td><%=row.elementAt(6)%></td>
                     <td><%=row.elementAt(7)%></td>
                     <td><%= "1".equals(row.elementAt(8).toString()) ? "Yes" : "No" %></td>
-                    <td><%=row.elementAt(9)%></td>
+                    <td><%= "1".equals(row.elementAt(9).toString()) ? "Yes" : "No" %></td>
+                    <td><%=row.elementAt(10)%></td>
                     <td><%=String.format("%.3f", purchaseCost)%></td>
                     <td class="<%=expenseTotal > 0 ? "text-danger fw-bold" : ""%>">
                         <%=String.format("%.3f", expenseTotal)%>
@@ -168,8 +170,8 @@ if (reportRows != null && reportRows.size() > 0) {
                     </td>
                     <td><%=String.format("%.3f", saleAmount)%></td>
                     <td class="<%= profit >= 0 ? "text-success" : "text-danger" %> fw-bold"><%=String.format("%.3f", profit)%></td>
-                    <td><%=row.elementAt(13)%></td>
                     <td><%=row.elementAt(14)%></td>
+                    <td><%=row.elementAt(15)%></td>
                 </tr>
                 <%  }
                 } else { %>

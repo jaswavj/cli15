@@ -70,6 +70,14 @@ Vector suppliers = inv.getActiveInvSuppliers();
                         </select>
                     </div>
 
+                    <div class="col-md-4">
+                        <label class="form-label">NOC</label>
+                        <select name="isNoc" class="form-select">
+                            <option value="1" <%= "1".equals(purchase.elementAt(10).toString()) ? "selected" : "" %>>Yes</option>
+                            <option value="0" <%= "0".equals(purchase.elementAt(10).toString()) ? "selected" : "" %>>No</option>
+                        </select>
+                    </div>
+
                     <div class="col-md-4 input-outline">
                         <input type="text" name="modelYear" class="form-control" value="<%=purchase.elementAt(7)%>">
                         <label>Model Year</label>

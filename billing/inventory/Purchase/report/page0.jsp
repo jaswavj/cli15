@@ -62,6 +62,7 @@ try {
                         <th>Name</th>
                         <th>Number</th>
                         <th>RC</th>
+                        <th>NOC</th>
                         <th>Year</th>
                         <th>Purchase Cost</th>
                         <th>Remark</th>
@@ -77,8 +78,8 @@ try {
                     if (reportRows != null && reportRows.size() > 0) {
                         for (int i = 0; i < reportRows.size(); i++) {
                             Vector row = (Vector) reportRows.get(i);
-                            double cost = Double.parseDouble(row.elementAt(9).toString());
-                            double expenseTotal = Double.parseDouble(row.elementAt(12).toString());
+                            double cost = Double.parseDouble(row.elementAt(10).toString());
+                            double expenseTotal = Double.parseDouble(row.elementAt(13).toString());
                             totalCost += cost;
                             totalExpense += expenseTotal;
                             int bikeId = Integer.parseInt(row.elementAt(0).toString());
@@ -94,10 +95,11 @@ try {
                         <td><%=row.elementAt(5)%></td>
                         <td><%=row.elementAt(6)%></td>
                         <td><%= "1".equals(row.elementAt(7).toString()) ? "Yes" : "No" %></td>
-                        <td><%=row.elementAt(8)%></td>
+                        <td><%= "1".equals(row.elementAt(8).toString()) ? "Yes" : "No" %></td>
+                        <td><%=row.elementAt(9)%></td>
                         <td><%=String.format("%.3f", cost)%></td>
-                        <td><%=row.elementAt(10)%></td>
                         <td><%=row.elementAt(11)%></td>
+                        <td><%=row.elementAt(12)%></td>
                         <td class="<%=expCssClass%>"><%=String.format("%.3f", expenseTotal)%></td>
                         <td>
                             <button type="button" class="btn btn-outline-info btn-sm"
@@ -115,7 +117,7 @@ try {
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="9" class="text-end">Total</th>
+                        <th colspan="10" class="text-end">Total</th>
                         <th><%=String.format("%.3f", totalCost)%></th>
                         <th></th>
                         <th></th>

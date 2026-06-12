@@ -9,6 +9,11 @@ try {
     String productName = request.getParameter("productName");
     String vehicleNumber = request.getParameter("vehicleNumber");
     int isRc = Integer.parseInt(request.getParameter("isRc"));
+    int isNoc = 0;
+    String isNocStr = request.getParameter("isNoc");
+    if (isNocStr != null && isNocStr.trim().length() > 0) {
+        isNoc = Integer.parseInt(isNocStr);
+    }
     String modelYear = request.getParameter("modelYear");
     String purchaseCostStr = request.getParameter("purchaseCost");
     String purchaseRemark = request.getParameter("purchaseRemark");
@@ -18,7 +23,7 @@ try {
         purchaseCost = Double.parseDouble(purchaseCostStr);
     }
 
-    inv.editInventoryPurchase(id, invDate, supplierId, fileId, productName, vehicleNumber, isRc, modelYear, purchaseCost, purchaseRemark);
+    inv.editInventoryPurchase(id, invDate, supplierId, fileId, productName, vehicleNumber, isRc, isNoc, modelYear, purchaseCost, purchaseRemark);
     response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=Purchase+updated+successfully&type=success");
 } catch (Exception e) {
     response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8") + "&type=danger");

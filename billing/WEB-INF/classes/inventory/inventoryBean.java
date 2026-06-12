@@ -545,7 +545,7 @@ public class inventoryBean {
 
     public void addInventoryPurchaseItems(String invDate, int storeId, int supplierId, String purchaseRemark, int uid,
                                           String[] fileIds, String[] productNames, String[] vehicleNumbers,
-                                          String[] isRcValues, String[] modelYears, String[] purchaseCosts) throws Exception {
+                                          String[] isRcValues, String[] isNocValues, String[] modelYears, String[] purchaseCosts) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
 
@@ -553,8 +553,8 @@ public class inventoryBean {
             con = util.DBConnectionManager.getConnectionFromPool();
             con.setAutoCommit(false);
 
-                String sql = "INSERT INTO inventory(file_id, product_name, vehicle_number, is_rc, model, purchase_cost, inv_date, dateTime, purchase_remark, uid, is_sold, sale_amount, sold_date, sale_remark, supplier_id, store_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 0, 0, NULL, NULL, ?, ?)";
+                String sql = "INSERT INTO inventory(file_id, product_name, vehicle_number, is_rc, is_noc, model, purchase_cost, inv_date, dateTime, purchase_remark, uid, is_sold, sale_amount, sold_date, sale_remark, supplier_id, store_id) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 0, 0, NULL, NULL, ?, ?)"; 
             pt = con.prepareStatement(sql);
 
             for (int i = 0; i < fileIds.length; i++) {
@@ -575,6 +575,10 @@ public class inventoryBean {
                 if (isRcValues != null && i < isRcValues.length && isRcValues[i] != null && isRcValues[i].trim().equals("1")) {
                     isRc = 1;
                 }
+                int isNoc = 0;
+                if (isNocValues != null && i < isNocValues.length && isNocValues[i] != null && isNocValues[i].trim().equals("1")) {
+                    isNoc = 1;
+                }
 
                 String modelYear = (modelYears != null && i < modelYears.length && modelYears[i] != null)
                         ? modelYears[i].trim() : "";
@@ -589,13 +593,14 @@ public class inventoryBean {
                 pt.setString(2, productName);
                 pt.setString(3, vehicleNo);
                 pt.setInt(4, isRc);
-                pt.setString(5, modelYear);
-                pt.setDouble(6, purchaseCost);
-                pt.setString(7, invDate);
-                pt.setString(8, purchaseRemark);
-                pt.setInt(9, uid);
-                pt.setInt(10, supplierId);
-                pt.setInt(11, storeId);
+                pt.setInt(5, isNoc);
+                pt.setString(6, modelYear);
+                pt.setDouble(7, purchaseCost);
+                pt.setString(8, invDate);
+                pt.setString(9, purchaseRemark);
+                pt.setInt(10, uid);
+                pt.setInt(11, supplierId);
+                pt.setInt(12, storeId);
                 pt.addBatch();
             }
 
@@ -626,7 +631,7 @@ public class inventoryBean {
             Vector major = new Vector();
 
             String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, i.vehicle_number, "
-                    + "COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, COALESCE(i.purchase_cost, 0) AS purchase_cost, "
+                    + "COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.is_noc, 0) AS is_noc, COALESCE(i.model, '-') AS model_year, COALESCE(i.purchase_cost, 0) AS purchase_cost, "
                     + "COALESCE(i.purchase_remark, '-') AS purchase_remark, COALESCE(i.supplier_id, 0) AS supplier_id, "
                     + "COALESCE(i.store_id, 0) AS store_id, COALESCE(st.name, '-') AS store_name "
                     + "FROM inventory i "
@@ -646,12 +651,13 @@ public class inventoryBean {
                 row.addElement(rs.getString(5));   // 4: product_name
                 row.addElement(rs.getString(6));   // 5: vehicle_number
                 row.addElement(rs.getString(7));   // 6: is_rc
-                row.addElement(rs.getString(8));   // 7: model_year
-                row.addElement(rs.getString(9));   // 8: purchase_cost
-                row.addElement(rs.getString(10));  // 9: purchase_remark
-                row.addElement(rs.getString(11));  // 10: supplier_id
-                row.addElement(rs.getString(12));  // 11: store_id
-                row.addElement(rs.getString(13));  // 12: store_name
+                row.addElement(rs.getString(8));   // 7: is_noc
+                row.addElement(rs.getString(9));   // 8: model_year
+                row.addElement(rs.getString(10));  // 9: purchase_cost
+                row.addElement(rs.getString(11));  // 10: purchase_remark
+                row.addElement(rs.getString(12));  // 11: supplier_id
+                row.addElement(rs.getString(13));  // 12: store_id
+                row.addElement(rs.getString(14));  // 13: store_name
                 major.addElement(row);
             }
 
@@ -682,23 +688,24 @@ public class inventoryBean {
             Vector row = new Vector();
 
             String sql = "SELECT id, inv_date, COALESCE(supplier_id, 0), file_id, product_name, vehicle_number, COALESCE(is_rc, 0), "
-                    + "COALESCE(model, ''), COALESCE(purchase_cost, 0), COALESCE(purchase_remark, '') "
+                    + "COALESCE(model, ''), COALESCE(purchase_cost, 0), COALESCE(purchase_remark, ''), COALESCE(is_noc, 0) "
                     + "FROM inventory WHERE id = ?";
             pt = con.prepareStatement(sql);
             pt.setInt(1, id);
             rs = pt.executeQuery();
 
             if (rs.next()) {
-                row.addElement(rs.getString(1));
-                row.addElement(rs.getString(2));
-                row.addElement(rs.getString(3));
-                row.addElement(rs.getString(4));
-                row.addElement(rs.getString(5));
-                row.addElement(rs.getString(6));
-                row.addElement(rs.getString(7));
-                row.addElement(rs.getString(8));
-                row.addElement(rs.getString(9));
-                row.addElement(rs.getString(10));
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: supplier_id
+                row.addElement(rs.getString(4));   // 3: file_id
+                row.addElement(rs.getString(5));   // 4: product_name
+                row.addElement(rs.getString(6));   // 5: vehicle_number
+                row.addElement(rs.getString(7));   // 6: is_rc
+                row.addElement(rs.getString(8));   // 7: model
+                row.addElement(rs.getString(9));   // 8: purchase_cost
+                row.addElement(rs.getString(10));  // 9: purchase_remark
+                row.addElement(rs.getString(11));  // 10: is_noc
             }
             return row;
         } finally {
@@ -718,7 +725,7 @@ public class inventoryBean {
     }
 
     public void editInventoryPurchase(int id, String invDate, int supplierId, int fileId, String productName,
-                                      String vehicleNumber, int isRc, String modelYear,
+                                      String vehicleNumber, int isRc, int isNoc, String modelYear,
                                       double purchaseCost, String purchaseRemark) throws Exception {
         Connection con = null;
         PreparedStatement pt = null;
@@ -727,7 +734,7 @@ public class inventoryBean {
             con = util.DBConnectionManager.getConnectionFromPool();
             con.setAutoCommit(false);
 
-            String sql = "UPDATE inventory SET inv_date=?, supplier_id=?, file_id=?, product_name=?, vehicle_number=?, is_rc=?, model=?, purchase_cost=?, purchase_remark=? WHERE id=?";
+            String sql = "UPDATE inventory SET inv_date=?, supplier_id=?, file_id=?, product_name=?, vehicle_number=?, is_rc=?, is_noc=?, model=?, purchase_cost=?, purchase_remark=? WHERE id=?";
             pt = con.prepareStatement(sql);
             pt.setString(1, invDate);
             pt.setInt(2, supplierId);
@@ -735,10 +742,11 @@ public class inventoryBean {
             pt.setString(4, productName);
             pt.setString(5, vehicleNumber);
             pt.setInt(6, isRc);
-            pt.setString(7, modelYear);
-            pt.setDouble(8, purchaseCost);
-            pt.setString(9, purchaseRemark);
-            pt.setInt(10, id);
+            pt.setInt(7, isNoc);
+            pt.setString(8, modelYear);
+            pt.setDouble(9, purchaseCost);
+            pt.setString(10, purchaseRemark);
+            pt.setInt(11, id);
             pt.executeUpdate();
 
             con.commit();
@@ -768,7 +776,7 @@ public class inventoryBean {
 
             String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, COALESCE(st.name, '-') AS store_name, "
                     + "i.file_id, i.product_name, i.vehicle_number, "
-                    + "COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, COALESCE(i.purchase_cost, 0) AS purchase_cost, "
+                    + "COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.is_noc, 0) AS is_noc, COALESCE(i.model, '-') AS model_year, COALESCE(i.purchase_cost, 0) AS purchase_cost, "
                     + "COALESCE(i.purchase_remark, '-') AS purchase_remark, i.dateTime, "
                     + "COALESCE((SELECT SUM(e.amount) FROM inv_expense_entry e WHERE e.bike_id = i.id AND e.is_active = 1), 0) AS expense_total "
                     + "FROM inventory i "
@@ -807,11 +815,12 @@ public class inventoryBean {
                 row.addElement(rs.getString(6));   // 5: product_name
                 row.addElement(rs.getString(7));   // 6: vehicle_number
                 row.addElement(rs.getString(8));   // 7: is_rc
-                row.addElement(rs.getString(9));   // 8: model_year
-                row.addElement(rs.getString(10));  // 9: purchase_cost
-                row.addElement(rs.getString(11));  // 10: purchase_remark
-                row.addElement(rs.getString(12));  // 11: dateTime
-                row.addElement(rs.getString(13));  // 12: expense_total
+                row.addElement(rs.getString(9));   // 8: is_noc
+                row.addElement(rs.getString(10));  // 9: model_year
+                row.addElement(rs.getString(11));  // 10: purchase_cost
+                row.addElement(rs.getString(12));  // 11: purchase_remark
+                row.addElement(rs.getString(13));  // 12: dateTime
+                row.addElement(rs.getString(14));  // 13: expense_total
                 major.addElement(row);
             }
 
@@ -904,7 +913,7 @@ public class inventoryBean {
             String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, "
                     + "i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
                     + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.store_id, 0) AS store_id, "
-                    + "COALESCE(st.name, '-') AS store_name "
+                    + "COALESCE(st.name, '-') AS store_name, COALESCE(i.is_noc, 0) AS is_noc "
                     + "FROM inventory i "
                     + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
                     + "LEFT JOIN inv_stores st ON st.id = i.store_id "
@@ -916,17 +925,18 @@ public class inventoryBean {
 
             while (rs.next()) {
                 Vector row = new Vector();
-                row.addElement(rs.getString(1));
-                row.addElement(rs.getString(2));
-                row.addElement(rs.getString(3));
-                row.addElement(rs.getString(4));
-                row.addElement(rs.getString(5));
-                row.addElement(rs.getString(6));
-                row.addElement(rs.getString(7));
-                row.addElement(rs.getString(8));
-                row.addElement(rs.getString(9));
-                row.addElement(rs.getString(10));
-                row.addElement(rs.getString(11));
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: supplier_name
+                row.addElement(rs.getString(4));   // 3: file_id
+                row.addElement(rs.getString(5));   // 4: product_name
+                row.addElement(rs.getString(6));   // 5: vehicle_number
+                row.addElement(rs.getString(7));   // 6: is_rc
+                row.addElement(rs.getString(8));   // 7: model_year
+                row.addElement(rs.getString(9));   // 8: purchase_cost
+                row.addElement(rs.getString(10));  // 9: store_id
+                row.addElement(rs.getString(11));  // 10: store_name
+                row.addElement(rs.getString(12));  // 11: is_noc
                 major.addElement(row);
             }
 
@@ -950,7 +960,7 @@ public class inventoryBean {
             String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, "
                     + "i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
                     + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.store_id, 0) AS store_id, "
-                    + "COALESCE(st.name, '-') AS store_name "
+                    + "COALESCE(st.name, '-') AS store_name, COALESCE(i.is_noc, 0) AS is_noc "
                     + "FROM inventory i "
                     + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
                     + "LEFT JOIN inv_stores st ON st.id = i.store_id "
@@ -970,17 +980,18 @@ public class inventoryBean {
 
             while (rs.next()) {
                 Vector row = new Vector();
-                row.addElement(rs.getString(1));
-                row.addElement(rs.getString(2));
-                row.addElement(rs.getString(3));
-                row.addElement(rs.getString(4));
-                row.addElement(rs.getString(5));
-                row.addElement(rs.getString(6));
-                row.addElement(rs.getString(7));
-                row.addElement(rs.getString(8));
-                row.addElement(rs.getString(9));
-                row.addElement(rs.getString(10));
-                row.addElement(rs.getString(11));
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: supplier_name
+                row.addElement(rs.getString(4));   // 3: file_id
+                row.addElement(rs.getString(5));   // 4: product_name
+                row.addElement(rs.getString(6));   // 5: vehicle_number
+                row.addElement(rs.getString(7));   // 6: is_rc
+                row.addElement(rs.getString(8));   // 7: model_year
+                row.addElement(rs.getString(9));   // 8: purchase_cost
+                row.addElement(rs.getString(10));  // 9: store_id
+                row.addElement(rs.getString(11));  // 10: store_name
+                row.addElement(rs.getString(12));  // 11: is_noc
                 major.addElement(row);
             }
 
@@ -1147,7 +1158,7 @@ public class inventoryBean {
             Vector major = new Vector();
 
             String sql = "SELECT i.id, i.inv_date, i.sold_date, COALESCE(s.name, '-') AS supplier_name, COALESCE(st.name, '-') AS store_name, i.file_id, "
-                    + "i.product_name, i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
+                    + "i.product_name, i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.is_noc, 0) AS is_noc, COALESCE(i.model, '-') AS model_year, "
                     + "COALESCE(i.purchase_cost, 0) AS purchase_cost, "
                     + "COALESCE((SELECT SUM(e.amount) FROM inv_expense_entry e WHERE e.bike_id = i.id AND e.is_active = 1), 0) AS expense_total, "
                     + "COALESCE(i.sale_amount, 0) AS sale_amount, "
@@ -1180,21 +1191,22 @@ public class inventoryBean {
             rs = pt.executeQuery();
             while (rs.next()) {
                 Vector row = new Vector();
-                row.addElement(rs.getString(1));
-                row.addElement(rs.getString(2));
-                row.addElement(rs.getString(3));
-                row.addElement(rs.getString(4));
-                row.addElement(rs.getString(5));
-                row.addElement(rs.getString(6));
-                row.addElement(rs.getString(7));
-                row.addElement(rs.getString(8));
-                row.addElement(rs.getString(9));
-                row.addElement(rs.getString(10));
-                row.addElement(rs.getString(11));
-                row.addElement(rs.getString(12));
-                row.addElement(rs.getString(13));
-                row.addElement(rs.getString(14));
-                row.addElement(rs.getString(15));
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: sold_date
+                row.addElement(rs.getString(4));   // 3: supplier_name
+                row.addElement(rs.getString(5));   // 4: store_name
+                row.addElement(rs.getString(6));   // 5: file_id
+                row.addElement(rs.getString(7));   // 6: product_name
+                row.addElement(rs.getString(8));   // 7: vehicle_number
+                row.addElement(rs.getString(9));   // 8: is_rc
+                row.addElement(rs.getString(10));  // 9: is_noc
+                row.addElement(rs.getString(11));  // 10: model_year
+                row.addElement(rs.getString(12));  // 11: purchase_cost
+                row.addElement(rs.getString(13));  // 12: expense_total
+                row.addElement(rs.getString(14));  // 13: sale_amount
+                row.addElement(rs.getString(15));  // 14: sale_remark
+                row.addElement(rs.getString(16));  // 15: sold_entry_datetime
                 major.addElement(row);
             }
 
@@ -1457,6 +1469,43 @@ public class inventoryBean {
         } finally {
             if (pt != null) { try { pt.close(); } catch (SQLException e) { } }
             if (con != null) { try { con.close(); } catch (Exception e) { } }
+        }
+    }
+
+    public int getMaxFileId() throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            pt = con.prepareStatement("SELECT COALESCE(MAX(file_id), 0) FROM inventory");
+            rs = pt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+            return 0;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
+        }
+    }
+
+    public Vector getInventoryVehicleNumbers() throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector list = new Vector();
+            pt = con.prepareStatement("SELECT vehicle_number FROM inventory WHERE vehicle_number IS NOT NULL AND vehicle_number != ''");
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                list.addElement(rs.getString(1));
+            }
+            return list;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
         }
     }
 

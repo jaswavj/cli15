@@ -78,6 +78,7 @@ try {
                                 <th>Product Name</th>
                                 <th>Vehicle Number</th>
                                 <th>RC</th>
+                                <th>NOC</th>
                                 <th>Model Year</th>
                                 <th>Purchase Cost</th>
                                 <th>Action</th>
@@ -108,6 +109,7 @@ try {
                                 <td><%=productName%></td>
                                 <td><%=vehicleNumber%></td>
                                 <td><%= "1".equals(row.elementAt(6).toString()) ? "Yes" : "No" %></td>
+                                <td><%= "1".equals(row.elementAt(11).toString()) ? "Yes" : "No" %></td>
                                 <td><%=row.elementAt(7)%></td>
                                 <td><%=String.format("%.3f", Double.parseDouble(row.elementAt(8).toString()))%></td>
                                 <td>

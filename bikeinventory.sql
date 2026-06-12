@@ -154,6 +154,7 @@ CREATE TABLE `inventory` (
   `product_name` varchar(255) NOT NULL,
   `vehicle_number` varchar(255) NOT NULL,
   `is_rc` int DEFAULT '0',
+  `is_noc` tinyint(1) NOT NULL DEFAULT '0',
   `model` varchar(255) DEFAULT NULL,
   `purchase_cost` double(10,3) DEFAULT '0.000',
   `supplier_id` int NOT NULL,
@@ -168,13 +169,16 @@ CREATE TABLE `inventory` (
   `sold_uid` int DEFAULT NULL,
   `sale_remark` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 /*Data for the table `inventory` */
 
-insert  into `inventory`(`id`,`store_id`,`file_id`,`product_name`,`vehicle_number`,`is_rc`,`model`,`purchase_cost`,`supplier_id`,`inv_date`,`dateTime`,`purchase_remark`,`uid`,`is_sold`,`sale_amount`,`sold_date`,`sold_entry_datetime`,`sold_uid`,`sale_remark`) values 
-(1,2,1,'HERO','TN74AY5777',1,'2025',150000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,0,0.000,NULL,NULL,NULL,NULL),
-(2,2,2,'HONDA','TN67AE5672',0,'2024',120000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,1,145000.000,'2026-05-03','2026-05-03 20:26:21',1,'sss');
+insert  into `inventory`(`id`,`store_id`,`file_id`,`product_name`,`vehicle_number`,`is_rc`,`is_noc`,`model`,`purchase_cost`,`supplier_id`,`inv_date`,`dateTime`,`purchase_remark`,`uid`,`is_sold`,`sale_amount`,`sold_date`,`sold_entry_datetime`,`sold_uid`,`sale_remark`) values 
+(1,2,1,'HERO','TN74AY5777',1,0,'2025',150000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,0,0.000,NULL,NULL,NULL,NULL),
+(2,2,2,'HONDA','TN67AE5672',0,0,'2024',120000.000,1,'2026-05-03','2026-05-03 20:17:43','sdsdsds',1,1,145000.000,'2026-05-03','2026-05-03 20:26:21',1,'sss'),
+(3,1,3,'qw','wqwq',1,0,'21',21.000,1,'2026-06-12','2026-06-12 15:05:50','qa',1,0,0.000,NULL,NULL,NULL,NULL),
+(4,1,4,'21','21',0,0,'21',21.000,1,'2026-06-12','2026-06-12 15:05:50','qa',1,0,0.000,NULL,NULL,NULL,NULL),
+(5,1,5,'ss','sdsd',1,1,'2332',3233.000,1,'2026-06-12','2026-06-12 15:12:35','a',1,0,0.000,NULL,NULL,NULL,NULL);
 
 /*Table structure for table `user_modules` */
 
