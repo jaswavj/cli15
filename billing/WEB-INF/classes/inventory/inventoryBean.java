@@ -1538,4 +1538,178 @@ public class inventoryBean {
             if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
         }
     }
+
+    public Vector getSoldInventory() throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+
+            String sql = "SELECT i.id, i.inv_date, COALESCE(s.name, '-') AS supplier_name, i.file_id, i.product_name, "
+                    + "i.vehicle_number, COALESCE(i.is_rc, 0) AS is_rc, COALESCE(i.model, '-') AS model_year, "
+                    + "COALESCE(i.purchase_cost, 0) AS purchase_cost, COALESCE(i.store_id, 0) AS store_id, "
+                    + "COALESCE(st.name, '-') AS store_name, COALESCE(i.is_noc, 0) AS is_noc, "
+                    + "COALESCE(i.sale_amount, 0) AS sale_amount, COALESCE(i.sold_date, '-') AS sold_date, "
+                    + "COALESCE(i.sale_remark, '-') AS sale_remark "
+                    + "FROM inventory i "
+                    + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
+                    + "WHERE i.is_sold = 1 "
+                    + "ORDER BY i.sold_date DESC, i.id DESC";
+
+            pt = con.prepareStatement(sql);
+            rs = pt.executeQuery();
+
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: inv_date
+                row.addElement(rs.getString(3));   // 2: supplier_name
+                row.addElement(rs.getString(4));   // 3: file_id
+                row.addElement(rs.getString(5));   // 4: product_name
+                row.addElement(rs.getString(6));   // 5: vehicle_number
+                row.addElement(rs.getString(7));   // 6: is_rc
+                row.addElement(rs.getString(8));   // 7: model_year
+                row.addElement(rs.getString(9));   // 8: purchase_cost
+                row.addElement(rs.getString(10));  // 9: store_id
+                row.addElement(rs.getString(11));  // 10: store_name
+                row.addElement(rs.getString(12));  // 11: is_noc
+                row.addElement(rs.getString(13));  // 12: sale_amount
+                row.addElement(rs.getString(14));  // 13: sold_date
+                row.addElement(rs.getString(15));  // 14: sale_remark
+                major.addElement(row);
+            }
+
+            return major;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
+        }
+    }
+
+    public void returnSoldBike(int id, String returnReason, int uid) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            con.setAutoCommit(false);
+
+            pt = con.prepareStatement(
+                    "SELECT sale_amount, sold_date, sale_remark FROM inventory WHERE id = ? AND is_sold = 1 FOR UPDATE");
+            pt.setInt(1, id);
+            rs = pt.executeQuery();
+            if (!rs.next()) {
+                throw new Exception("Bike not found or is not sold");
+            }
+            double oldSaleAmount = rs.getDouble(1);
+            String oldSoldDate = rs.getString(2);
+            String oldSaleRemark = rs.getString(3);
+            rs.close();
+            rs = null;
+            pt.close();
+            pt = null;
+
+            pt = con.prepareStatement(
+                    "INSERT INTO inventory_sold_return(bike_id, old_sale_amount, old_sold_date, old_sale_remark, return_reason, return_date_time, uid) "
+                    + "VALUES (?, ?, ?, ?, ?, NOW(), ?)");
+            pt.setInt(1, id);
+            pt.setDouble(2, oldSaleAmount);
+            pt.setString(3, oldSoldDate);
+            pt.setString(4, oldSaleRemark);
+            pt.setString(5, returnReason);
+            pt.setInt(6, uid);
+            pt.executeUpdate();
+            pt.close();
+            pt = null;
+
+            pt = con.prepareStatement(
+                    "UPDATE inventory SET is_sold=0, sale_amount=NULL, sold_date=NULL, sold_entry_datetime=NULL, sold_uid=NULL, sale_remark=NULL WHERE id=?");
+            pt.setInt(1, id);
+            pt.executeUpdate();
+
+            con.commit();
+        } catch (Exception e) {
+            if (con != null) { con.rollback(); }
+            throw e;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } }
+            if (con != null) { try { con.close(); } catch (Exception e) { } }
+        }
+    }
+
+    public Vector getSoldReturnReport(String fromDate, String toDate, int supplierId, int storeId) throws Exception {
+        Connection con = null;
+        PreparedStatement pt = null;
+        ResultSet rs = null;
+
+        try {
+            con = util.DBConnectionManager.getConnectionFromPool();
+            Vector major = new Vector();
+
+            String sql = "SELECT r.id, r.return_date_time, r.old_sale_amount, r.old_sold_date, "
+                    + "COALESCE(r.old_sale_remark, '-') AS old_sale_remark, r.return_reason, "
+                    + "i.inv_date, COALESCE(s.name, '-') AS supplier_name, COALESCE(st.name, '-') AS store_name, "
+                    + "i.file_id, i.product_name, i.vehicle_number, COALESCE(i.model, '-') AS model_year, "
+                    + "COALESCE(u.fullName, u.user_name, '-') AS returned_by "
+                    + "FROM inventory_sold_return r "
+                    + "INNER JOIN inventory i ON i.id = r.bike_id "
+                    + "LEFT JOIN inv_supplier s ON s.id = i.supplier_id "
+                    + "LEFT JOIN inv_stores st ON st.id = i.store_id "
+                    + "LEFT JOIN users u ON u.id = r.uid "
+                    + "WHERE DATE(r.return_date_time) BETWEEN ? AND ? ";
+
+            if (supplierId > 0) {
+                sql += "AND i.supplier_id = ? ";
+            }
+            if (storeId > 0) {
+                sql += "AND i.store_id = ? ";
+            }
+
+            sql += "ORDER BY r.return_date_time DESC, r.id DESC";
+
+            pt = con.prepareStatement(sql);
+            pt.setString(1, fromDate);
+            pt.setString(2, toDate);
+            int paramIdx = 3;
+            if (supplierId > 0) {
+                pt.setInt(paramIdx++, supplierId);
+            }
+            if (storeId > 0) {
+                pt.setInt(paramIdx++, storeId);
+            }
+
+            rs = pt.executeQuery();
+            while (rs.next()) {
+                Vector row = new Vector();
+                row.addElement(rs.getString(1));   // 0: id
+                row.addElement(rs.getString(2));   // 1: return_date_time
+                row.addElement(rs.getString(3));   // 2: old_sale_amount
+                row.addElement(rs.getString(4));   // 3: old_sold_date
+                row.addElement(rs.getString(5));   // 4: old_sale_remark
+                row.addElement(rs.getString(6));   // 5: return_reason
+                row.addElement(rs.getString(7));   // 6: inv_date
+                row.addElement(rs.getString(8));   // 7: supplier_name
+                row.addElement(rs.getString(9));   // 8: store_name
+                row.addElement(rs.getString(10));  // 9: file_id
+                row.addElement(rs.getString(11));  // 10: product_name
+                row.addElement(rs.getString(12));  // 11: vehicle_number
+                row.addElement(rs.getString(13));  // 12: model_year
+                row.addElement(rs.getString(14));  // 13: returned_by
+                major.addElement(row);
+            }
+
+            return major;
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+            if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+            if (con != null) { try { con.close(); } catch (Exception e) { } con = null; }
+        }
+    }
 }

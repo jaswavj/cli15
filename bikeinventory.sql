@@ -180,6 +180,25 @@ insert  into `inventory`(`id`,`store_id`,`file_id`,`product_name`,`vehicle_numbe
 (4,1,4,'21','21',0,0,'21',21.000,1,'2026-06-12','2026-06-12 15:05:50','qa',1,0,0.000,NULL,NULL,NULL,NULL),
 (5,1,5,'ss','sdsd',1,1,'2332',3233.000,1,'2026-06-12','2026-06-12 15:12:35','a',1,0,0.000,NULL,NULL,NULL,NULL);
 
+/*Table structure for table `inventory_sold_return` */
+
+DROP TABLE IF EXISTS `inventory_sold_return`;
+
+CREATE TABLE `inventory_sold_return` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `bike_id` int NOT NULL,
+  `old_sale_amount` double(10,3) DEFAULT NULL,
+  `old_sold_date` date DEFAULT NULL,
+  `old_sale_remark` text,
+  `return_reason` text NOT NULL,
+  `return_date_time` datetime NOT NULL,
+  `uid` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `bike_idx` (`bike_id`),
+  KEY `return_date_idx` (`return_date_time`),
+  KEY `uid_idx` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 /*Table structure for table `user_modules` */
 
 DROP TABLE IF EXISTS `user_modules`;

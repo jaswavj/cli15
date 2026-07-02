@@ -71,6 +71,7 @@ try {
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Action</th>
                                 <th>Store</th>
                                 <th>Invoice Date</th>
                                 <th>Supplier</th>
@@ -81,7 +82,6 @@ try {
                                 <th>NOC</th>
                                 <th>Model Year</th>
                                 <th>Purchase Cost</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,7 +89,7 @@ try {
                         if (unsoldList.size() == 0 && loadError == null) {
                         %>
                             <tr>
-                                <td colspan="11" class="text-center text-muted py-3">No unsold bikes found.</td>
+                                <td colspan="12" class="text-center text-muted py-3">No unsold bikes found.</td>
                             </tr>
                         <%
                         }
@@ -102,6 +102,15 @@ try {
                         %>
                             <tr data-product="<%=productName.toLowerCase()%>" data-vehicle="<%=vehicleNumber.toLowerCase()%>" data-store="<%=storeId%>">
                                 <td class="row-num"><%=i + 1%></td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm"
+                                        data-bike-id="<%=bikeId%>"
+                                        data-product="<%=productName.replace("'", "\\'")%>"
+                                        data-vehicle="<%=vehicleNumber%>"
+                                        onclick="openExpenseModal(<%=bikeId%>, '<%=productName.replace("'","\\'")%>', '<%=vehicleNumber%>')">
+                                        <i class="fas fa-plus-circle"></i> Expense
+                                    </button>
+                                </td>
                                 <td><%=row.elementAt(10)%></td>
                                 <td><%=row.elementAt(1)%></td>
                                 <td><%=row.elementAt(2)%></td>
@@ -112,15 +121,6 @@ try {
                                 <td><%= "1".equals(row.elementAt(11).toString()) ? "Yes" : "No" %></td>
                                 <td><%=row.elementAt(7)%></td>
                                 <td><%=String.format("%.3f", Double.parseDouble(row.elementAt(8).toString()))%></td>
-                                <td>
-                                    <button type="button" class="btn btn-warning btn-sm"
-                                        data-bike-id="<%=bikeId%>"
-                                        data-product="<%=productName.replace("'", "\\'")%>"
-                                        data-vehicle="<%=vehicleNumber%>"
-                                        onclick="openExpenseModal(<%=bikeId%>, '<%=productName.replace("'","\\'")%>', '<%=vehicleNumber%>')">
-                                        <i class="fas fa-plus-circle"></i> Expense
-                                    </button>
-                                </td>
                             </tr>
                         <% } %>
                         </tbody>
