@@ -18,6 +18,7 @@ String[] productNames = request.getParameterValues("productName[]");
 String[] vehicleNumbers = request.getParameterValues("vehicleNumber[]");
 String[] isRcValues = request.getParameterValues("isRc[]");
 String[] isNocValues = request.getParameterValues("isNoc[]");
+String[] fineBoxValues = request.getParameterValues("fineBox[]");
 String[] modelYears = request.getParameterValues("modelYear[]");
 String[] purchaseCosts = request.getParameterValues("purchaseCost[]");
 
@@ -34,7 +35,7 @@ if (fileIds == null || fileIds.length == 0) {
 try {
     int storeId = Integer.parseInt(storeIdStr);
     int supplierId = Integer.parseInt(supplierIdStr);
-    inv.addInventoryPurchaseItems(invDate, storeId, supplierId, purchaseRemark, uid, fileIds, productNames, vehicleNumbers, isRcValues, isNocValues, modelYears, purchaseCosts);
+    inv.addInventoryPurchaseItems(invDate, storeId, supplierId, purchaseRemark, uid, fileIds, productNames, vehicleNumbers, isRcValues, isNocValues, fineBoxValues, modelYears, purchaseCosts);
     response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=Purchase+saved+successfully&type=success");
 } catch (Exception e) {
     response.sendRedirect(request.getContextPath() + "/inventory/Purchase/page.jsp?msg=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8") + "&type=danger");

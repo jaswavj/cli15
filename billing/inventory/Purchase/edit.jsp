@@ -79,6 +79,11 @@ Vector suppliers = inv.getActiveInvSuppliers();
                     </div>
 
                     <div class="col-md-4 input-outline">
+                        <input type="number" step="1" min="0" name="fineBox" class="form-control" value="<%=purchase.elementAt(11)%>">
+                        <label>Fine Box</label>
+                    </div>
+
+                    <div class="col-md-4 input-outline">
                         <input type="text" name="modelYear" class="form-control" value="<%=purchase.elementAt(7)%>">
                         <label>Model Year</label>
                     </div>

@@ -63,6 +63,7 @@ try {
                         <th>Number</th>
                         <th>RC</th>
                         <th>NOC</th>
+                        <th>Fine </th>
                         <th>Year</th>
                         <th>Purchase Cost</th>
                         <th>Remark</th>
@@ -78,8 +79,8 @@ try {
                     if (reportRows != null && reportRows.size() > 0) {
                         for (int i = 0; i < reportRows.size(); i++) {
                             Vector row = (Vector) reportRows.get(i);
-                            double cost = Double.parseDouble(row.elementAt(10).toString());
-                            double expenseTotal = Double.parseDouble(row.elementAt(13).toString());
+                            double cost = Double.parseDouble(row.elementAt(11).toString());
+                            double expenseTotal = Double.parseDouble(row.elementAt(14).toString());
                             totalCost += cost;
                             totalExpense += expenseTotal;
                             int bikeId = Integer.parseInt(row.elementAt(0).toString());
@@ -97,9 +98,10 @@ try {
                         <td><%= "1".equals(row.elementAt(7).toString()) ? "Yes" : "No" %></td>
                         <td><%= "1".equals(row.elementAt(8).toString()) ? "Yes" : "No" %></td>
                         <td><%=row.elementAt(9)%></td>
+                        <td><%=row.elementAt(10)%></td>
                         <td><%=String.format("%.3f", cost)%></td>
-                        <td><%=row.elementAt(11)%></td>
                         <td><%=row.elementAt(12)%></td>
+                        <td><%=row.elementAt(13)%></td>
                         <td class="<%=expCssClass%>"><%=String.format("%.3f", expenseTotal)%></td>
                         <td>
                             <button type="button" class="btn btn-outline-info btn-sm"
@@ -111,13 +113,13 @@ try {
                     <%  }
                     } else { %>
                     <tr>
-                        <td colspan="13" class="text-center">No records found for selected filters.</td>
+                        <td colspan="16" class="text-center">No records found for selected filters.</td>
                     </tr>
                     <% } %>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="10" class="text-end">Total</th>
+                        <th colspan="11" class="text-end">Total</th>
                         <th><%=String.format("%.3f", totalCost)%></th>
                         <th></th>
                         <th></th>

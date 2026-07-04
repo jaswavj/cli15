@@ -99,6 +99,7 @@ try {
                                     <th>Vehicle Number</th>
                                     <th>RC</th>
                                     <th>NOC</th>
+                                    <th>Fine</th>
                                     <th>Model Year</th>
                                     <th>Purchase Cost</th>
                                     <th>Action</th>
@@ -121,6 +122,7 @@ try {
                                             <option value="0" selected>No</option>
                                         </select>
                                     </td>
+                                    <td><input type="number" step="1" min="0" name="fineBox[]" class="form-control table-input-md" value="0"></td>
                                     <td><input type="text" name="modelYear[]" class="form-control table-input-md" placeholder="e.g. 2024"></td>
                                     <td><input type="number" step="0.001" name="purchaseCost[]" class="form-control table-input" value="0"></td>
                                     <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button></td>
@@ -155,15 +157,18 @@ try {
                         <thead>
                             <tr>
                                 <th>File No</th>
+                                <th>Action</th>
                                 <th>Invoice Date</th>
                                 <th>Supplier</th>
                                 <th>Store</th>
                                 <th>Product Name</th>
                                 <th>Vehicle Number</th>
-                                <th>RC</th>                                <th>NOC</th>                                <th>Model Year</th>
+                                <th>RC</th>
+                                <th>NOC</th>
+                                <th>Fine</th>
+                                <th>Model Year</th>
                                 <th>Cost</th>
                                 <th>Remark</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -171,13 +176,16 @@ try {
                         for (int i = 0; i < purchases.size(); i++) {
                             Vector row = (Vector) purchases.get(i);
                             int id = Integer.parseInt(row.elementAt(0).toString());
-                            String storeId = row.elementAt(12).toString();
+                            String storeId = row.elementAt(13).toString();
                         %>
                             <tr data-store-id="<%=storeId%>">
                                 <td><%= row.elementAt(3) %></td>
+                                <td>
+                                    <a href="<%=contextPath%>/inventory/Purchase/edit.jsp?id=<%=id%>" class="btn btn-warning btn-sm">Edit</a>
+                                </td>
                                 <td><%= row.elementAt(1) %></td>
                                 <td><%= row.elementAt(2) %></td>
-                                <td><%= row.elementAt(13) %></td>
+                                <td><%= row.elementAt(14) %></td>
                                 <td><%= row.elementAt(4) %></td>
                                 <td><%= row.elementAt(5) %></td>
                                 <td><%= "1".equals(row.elementAt(6).toString()) ? "Yes" : "No" %></td>
@@ -185,9 +193,7 @@ try {
                                 <td><%= row.elementAt(8) %></td>
                                 <td><%= row.elementAt(9) %></td>
                                 <td><%= row.elementAt(10) %></td>
-                                <td>
-                                    <a href="<%=contextPath%>/inventory/Purchase/edit.jsp?id=<%=id%>" class="btn btn-warning btn-sm">Edit</a>
-                                </td>
+                                <td><%= row.elementAt(11) %></td>
                             </tr>
                         <% } %>
                         </tbody>
@@ -198,6 +204,36 @@ try {
     </div>
 
     <script>
+        window.addEventListener('load', function() {
+            var sidebar = document.getElementById('sidebar');
+            var sidebarOverlay = document.getElementById('sidebarOverlay');
+            var body = document.body;
+
+            if (sidebar) {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('show');
+            }
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('show');
+            }
+            if (body) {
+                body.classList.add('sidebar-hidden');
+                body.classList.remove('sidebar-open');
+            }
+
+            ['#bikeInventoryMenu', '#bikeInvReportMenu'].forEach(function(selector) {
+                var menu = document.querySelector(selector);
+                if (menu && menu.classList.contains('show')) {
+                    var bsCollapse = bootstrap.Collapse.getInstance(menu);
+                    if (bsCollapse) {
+                        bsCollapse.hide();
+                    } else {
+                        menu.classList.remove('show');
+                    }
+                }
+            });
+        });
+
         var baseFileId = <%= nextFileId %>;
         var existingVehicleNumbers = [
             <% for (int vi = 0; vi < vehicleNumbers.size(); vi++) {
@@ -228,6 +264,7 @@ try {
                 + '<td><input type="text" name="vehicleNumber[]" class="form-control table-input vehicle-number-input" required></td>'
                 + '<td><select name="isRc[]" class="form-select table-input-sm"><option value="1">Yes</option><option value="0" selected>No</option></select></td>'
                 + '<td><select name="isNoc[]" class="form-select table-input-sm"><option value="1">Yes</option><option value="0" selected>No</option></select></td>'
+                + '<td><input type="number" step="1" min="0" name="fineBox[]" class="form-control table-input-md" value="0"></td>'
                 + '<td><input type="text" name="modelYear[]" class="form-control table-input-md" placeholder="e.g. 2024"></td>'
                 + '<td><input type="number" step="0.001" name="purchaseCost[]" class="form-control table-input" value="0"></td>'
                 + '<td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button></td>';
